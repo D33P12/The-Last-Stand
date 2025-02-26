@@ -53,6 +53,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ShoulderChange"",
+                    ""type"": ""Button"",
+                    ""id"": ""f56b28f5-27d7-452e-b1f8-9f413e55f3a6"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -143,6 +152,17 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""action"": ""Shoot"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""893a90dd-f39a-46bd-8fa9-1d4b45b21a55"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ShoulderChange"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -154,6 +174,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         m_PlayerMovement_Movement = m_PlayerMovement.FindAction("Movement", throwIfNotFound: true);
         m_PlayerMovement_TakeCover = m_PlayerMovement.FindAction("TakeCover", throwIfNotFound: true);
         m_PlayerMovement_Shoot = m_PlayerMovement.FindAction("Shoot", throwIfNotFound: true);
+        m_PlayerMovement_ShoulderChange = m_PlayerMovement.FindAction("ShoulderChange", throwIfNotFound: true);
     }
 
     ~@Inputs()
@@ -223,6 +244,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerMovement_Movement;
     private readonly InputAction m_PlayerMovement_TakeCover;
     private readonly InputAction m_PlayerMovement_Shoot;
+    private readonly InputAction m_PlayerMovement_ShoulderChange;
     public struct PlayerMovementActions
     {
         private @Inputs m_Wrapper;
@@ -230,6 +252,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         public InputAction @Movement => m_Wrapper.m_PlayerMovement_Movement;
         public InputAction @TakeCover => m_Wrapper.m_PlayerMovement_TakeCover;
         public InputAction @Shoot => m_Wrapper.m_PlayerMovement_Shoot;
+        public InputAction @ShoulderChange => m_Wrapper.m_PlayerMovement_ShoulderChange;
         public InputActionMap Get() { return m_Wrapper.m_PlayerMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -248,6 +271,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Shoot.started += instance.OnShoot;
             @Shoot.performed += instance.OnShoot;
             @Shoot.canceled += instance.OnShoot;
+            @ShoulderChange.started += instance.OnShoulderChange;
+            @ShoulderChange.performed += instance.OnShoulderChange;
+            @ShoulderChange.canceled += instance.OnShoulderChange;
         }
 
         private void UnregisterCallbacks(IPlayerMovementActions instance)
@@ -261,6 +287,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Shoot.started -= instance.OnShoot;
             @Shoot.performed -= instance.OnShoot;
             @Shoot.canceled -= instance.OnShoot;
+            @ShoulderChange.started -= instance.OnShoulderChange;
+            @ShoulderChange.performed -= instance.OnShoulderChange;
+            @ShoulderChange.canceled -= instance.OnShoulderChange;
         }
 
         public void RemoveCallbacks(IPlayerMovementActions instance)
@@ -283,5 +312,6 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         void OnMovement(InputAction.CallbackContext context);
         void OnTakeCover(InputAction.CallbackContext context);
         void OnShoot(InputAction.CallbackContext context);
+        void OnShoulderChange(InputAction.CallbackContext context);
     }
 }
