@@ -10,30 +10,33 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed;
     public CinemachineCamera cineCamera;
     
+    [SerializeField] float shoulderChangeDistance =1.50f;
+    [SerializeField] private Transform rightShoulder;
+    [SerializeField] private Transform leftShoulder;
+    
+    [SerializeField] private bool isRightShoulder = true;
+    
     private void Awake()
     {
         _controls = new Inputs();
         
         _controls.PlayerMovement.Movement.performed += ctx => _movement = ctx.ReadValue<Vector2>();
         _controls.PlayerMovement.Movement.canceled += ctx => _movement = Vector2.zero;
-     
+        _controls.PlayerMovement.ShoulderChange.performed += ctx => CamChange();
     }
     private void OnEnable()
     {
         _controls.Enable();
-        
     }
-
     private void OnDisable()
     {
         _controls.Disable();
     }
-    private void Update()
+    private void FixedUpdate()
     {
         Move();
         MaintainCameraFacingWorldZ();
     }
-    
     private void Move()
     {
         Vector3 moveDirection = new Vector3(_movement.x, 0, _movement.y);
@@ -44,5 +47,24 @@ public class PlayerController : MonoBehaviour
     {
         cineCamera.transform.rotation = Quaternion.Euler(0, 0, 0);
     }
+    private void CamChange()
+    {
+        isRightShoulder = !isRightShoulder;
 
+        var cinemachineFollow = cineCamera.GetComponent<CinemachineFollow>();
+
+        if (cinemachineFollow != null)
+        {
+            Vector3 newOffset = cinemachineFollow.FollowOffset;
+            if (isRightShoulder)
+            {
+                newOffset.x = shoulderChangeDistance;
+            }
+            else
+            {
+                newOffset.x = -shoulderChangeDistance;
+            }
+            cinemachineFollow.FollowOffset = newOffset;
+        }
+    }
 }
