@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
 
@@ -11,10 +12,15 @@ public class PlayerController : MonoBehaviour
     public CinemachineCamera cineCamera;
     
     [SerializeField] float shoulderChangeDistance =1.50f;
-    [SerializeField] private Transform rightShoulder;
-    [SerializeField] private Transform leftShoulder;
     
     [SerializeField] private bool isRightShoulder = true;
+    
+    public Transform shootPoint;
+    public GameObject bulletPrefab;
+    private Queue<GameObject> bulletPool = new Queue<GameObject>();
+    public int poolSize = 10;
+    public float bulletSpeed = 20f;
+    public float recoilAmount = 2f;
     
     private void Awake()
     {
@@ -23,6 +29,10 @@ public class PlayerController : MonoBehaviour
         _controls.PlayerMovement.Movement.performed += ctx => _movement = ctx.ReadValue<Vector2>();
         _controls.PlayerMovement.Movement.canceled += ctx => _movement = Vector2.zero;
         _controls.PlayerMovement.ShoulderChange.performed += ctx => CamChange();
+        _controls.PlayerMovement.Shoot.performed += ctx => Shoot();
+        
+        InitializeBulletPool();
+        
     }
     private void OnEnable()
     {
@@ -35,7 +45,6 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         Move();
-        MaintainCameraFacingWorldZ();
     }
     private void Move()
     {
@@ -43,10 +52,7 @@ public class PlayerController : MonoBehaviour
         moveDirection = transform.TransformDirection(moveDirection);
         _rb.linearVelocity = new Vector3(moveDirection.x * moveSpeed, _rb.linearVelocity.y, moveDirection.z * moveSpeed);
     }
-    private void MaintainCameraFacingWorldZ()
-    {
-        cineCamera.transform.rotation = Quaternion.Euler(0, 0, 0);
-    }
+   
     private void CamChange()
     {
         isRightShoulder = !isRightShoulder;
@@ -65,6 +71,50 @@ public class PlayerController : MonoBehaviour
                 newOffset.x = -shoulderChangeDistance;
             }
             cinemachineFollow.FollowOffset = newOffset;
+        }
+    }
+    private void Shoot()
+    {
+        RaycastHit hit;
+        Vector3 shootDirection;
+
+        if (Physics.Raycast(cineCamera.transform.position, cineCamera.transform.forward, out hit, 100f))
+        {
+            shootDirection = (hit.point - shootPoint.position).normalized; 
+        }
+        else
+        {
+            shootDirection = cineCamera.transform.forward;
+        }
+        FirePooledBullet(shootDirection); 
+        transform.position -= shootDirection * recoilAmount * Time.deltaTime;
+    }
+    private void FirePooledBullet(Vector3 shootDirection)
+    {
+        if (bulletPool.Count > 0)
+        {
+            GameObject bullet = bulletPool.Dequeue();
+            bullet.transform.position = shootPoint.position; 
+            bullet.transform.rotation = Quaternion.LookRotation(shootDirection); 
+            bullet.SetActive(true);
+            bullet.GetComponent<Rigidbody>().linearVelocity = shootDirection * bulletSpeed;
+
+            StartCoroutine(ReturnBulletToPool(bullet, 2f));
+        }
+    }
+    private System.Collections.IEnumerator ReturnBulletToPool(GameObject bullet, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        bullet.SetActive(false);
+        bulletPool.Enqueue(bullet);
+    }
+    private void InitializeBulletPool()
+    {
+        for (int i = 0; i < poolSize; i++)
+        {
+            GameObject bullet = Instantiate(bulletPrefab);
+            bullet.SetActive(false);
+            bulletPool.Enqueue(bullet);
         }
     }
 }
