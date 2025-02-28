@@ -62,6 +62,24 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Look"",
+                    ""type"": ""Value"",
+                    ""id"": ""322ba547-2f29-4703-8f3a-588c48cc0328"",
+                    ""expectedControlType"": ""Delta"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""ADS"",
+                    ""type"": ""Button"",
+                    ""id"": ""52891a08-8f08-4c48-976e-d553bd4eaf47"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -163,6 +181,28 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""action"": ""ShoulderChange"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9f3a6d7a-552a-4bf8-8da0-c40b4dad0f44"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Look"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""310595fe-ecfe-4140-94b5-d3f7c189e6d9"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ADS"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -175,6 +215,8 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         m_PlayerMovement_TakeCover = m_PlayerMovement.FindAction("TakeCover", throwIfNotFound: true);
         m_PlayerMovement_Shoot = m_PlayerMovement.FindAction("Shoot", throwIfNotFound: true);
         m_PlayerMovement_ShoulderChange = m_PlayerMovement.FindAction("ShoulderChange", throwIfNotFound: true);
+        m_PlayerMovement_Look = m_PlayerMovement.FindAction("Look", throwIfNotFound: true);
+        m_PlayerMovement_ADS = m_PlayerMovement.FindAction("ADS", throwIfNotFound: true);
     }
 
     ~@Inputs()
@@ -245,6 +287,8 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerMovement_TakeCover;
     private readonly InputAction m_PlayerMovement_Shoot;
     private readonly InputAction m_PlayerMovement_ShoulderChange;
+    private readonly InputAction m_PlayerMovement_Look;
+    private readonly InputAction m_PlayerMovement_ADS;
     public struct PlayerMovementActions
     {
         private @Inputs m_Wrapper;
@@ -253,6 +297,8 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         public InputAction @TakeCover => m_Wrapper.m_PlayerMovement_TakeCover;
         public InputAction @Shoot => m_Wrapper.m_PlayerMovement_Shoot;
         public InputAction @ShoulderChange => m_Wrapper.m_PlayerMovement_ShoulderChange;
+        public InputAction @Look => m_Wrapper.m_PlayerMovement_Look;
+        public InputAction @ADS => m_Wrapper.m_PlayerMovement_ADS;
         public InputActionMap Get() { return m_Wrapper.m_PlayerMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -274,6 +320,12 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @ShoulderChange.started += instance.OnShoulderChange;
             @ShoulderChange.performed += instance.OnShoulderChange;
             @ShoulderChange.canceled += instance.OnShoulderChange;
+            @Look.started += instance.OnLook;
+            @Look.performed += instance.OnLook;
+            @Look.canceled += instance.OnLook;
+            @ADS.started += instance.OnADS;
+            @ADS.performed += instance.OnADS;
+            @ADS.canceled += instance.OnADS;
         }
 
         private void UnregisterCallbacks(IPlayerMovementActions instance)
@@ -290,6 +342,12 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @ShoulderChange.started -= instance.OnShoulderChange;
             @ShoulderChange.performed -= instance.OnShoulderChange;
             @ShoulderChange.canceled -= instance.OnShoulderChange;
+            @Look.started -= instance.OnLook;
+            @Look.performed -= instance.OnLook;
+            @Look.canceled -= instance.OnLook;
+            @ADS.started -= instance.OnADS;
+            @ADS.performed -= instance.OnADS;
+            @ADS.canceled -= instance.OnADS;
         }
 
         public void RemoveCallbacks(IPlayerMovementActions instance)
@@ -313,5 +371,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         void OnTakeCover(InputAction.CallbackContext context);
         void OnShoot(InputAction.CallbackContext context);
         void OnShoulderChange(InputAction.CallbackContext context);
+        void OnLook(InputAction.CallbackContext context);
+        void OnADS(InputAction.CallbackContext context);
     }
 }
