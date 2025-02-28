@@ -37,7 +37,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""TakeCover"",
+                    ""name"": ""Cover"",
                     ""type"": ""Button"",
                     ""id"": ""58cdb4b3-74a2-4cf9-a646-ceb1731cf212"",
                     ""expectedControlType"": """",
@@ -76,6 +76,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""name"": ""ADS"",
                     ""type"": ""Button"",
                     ""id"": ""52891a08-8f08-4c48-976e-d553bd4eaf47"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Reload"",
+                    ""type"": ""Button"",
+                    ""id"": ""bd2795c9-6d4f-4b1b-af06-22536c6dce08"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -145,7 +154,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""TakeCover"",
+                    ""action"": ""Cover"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -156,7 +165,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""TakeCover"",
+                    ""action"": ""Cover"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -203,6 +212,17 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""action"": ""ADS"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fe5718f0-7ac0-4ca9-afa9-ce46e7edabe2"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -212,11 +232,12 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         // PlayerMovement
         m_PlayerMovement = asset.FindActionMap("PlayerMovement", throwIfNotFound: true);
         m_PlayerMovement_Movement = m_PlayerMovement.FindAction("Movement", throwIfNotFound: true);
-        m_PlayerMovement_TakeCover = m_PlayerMovement.FindAction("TakeCover", throwIfNotFound: true);
+        m_PlayerMovement_Cover = m_PlayerMovement.FindAction("Cover", throwIfNotFound: true);
         m_PlayerMovement_Shoot = m_PlayerMovement.FindAction("Shoot", throwIfNotFound: true);
         m_PlayerMovement_ShoulderChange = m_PlayerMovement.FindAction("ShoulderChange", throwIfNotFound: true);
         m_PlayerMovement_Look = m_PlayerMovement.FindAction("Look", throwIfNotFound: true);
         m_PlayerMovement_ADS = m_PlayerMovement.FindAction("ADS", throwIfNotFound: true);
+        m_PlayerMovement_Reload = m_PlayerMovement.FindAction("Reload", throwIfNotFound: true);
     }
 
     ~@Inputs()
@@ -284,21 +305,23 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_PlayerMovement;
     private List<IPlayerMovementActions> m_PlayerMovementActionsCallbackInterfaces = new List<IPlayerMovementActions>();
     private readonly InputAction m_PlayerMovement_Movement;
-    private readonly InputAction m_PlayerMovement_TakeCover;
+    private readonly InputAction m_PlayerMovement_Cover;
     private readonly InputAction m_PlayerMovement_Shoot;
     private readonly InputAction m_PlayerMovement_ShoulderChange;
     private readonly InputAction m_PlayerMovement_Look;
     private readonly InputAction m_PlayerMovement_ADS;
+    private readonly InputAction m_PlayerMovement_Reload;
     public struct PlayerMovementActions
     {
         private @Inputs m_Wrapper;
         public PlayerMovementActions(@Inputs wrapper) { m_Wrapper = wrapper; }
         public InputAction @Movement => m_Wrapper.m_PlayerMovement_Movement;
-        public InputAction @TakeCover => m_Wrapper.m_PlayerMovement_TakeCover;
+        public InputAction @Cover => m_Wrapper.m_PlayerMovement_Cover;
         public InputAction @Shoot => m_Wrapper.m_PlayerMovement_Shoot;
         public InputAction @ShoulderChange => m_Wrapper.m_PlayerMovement_ShoulderChange;
         public InputAction @Look => m_Wrapper.m_PlayerMovement_Look;
         public InputAction @ADS => m_Wrapper.m_PlayerMovement_ADS;
+        public InputAction @Reload => m_Wrapper.m_PlayerMovement_Reload;
         public InputActionMap Get() { return m_Wrapper.m_PlayerMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -311,9 +334,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Movement.started += instance.OnMovement;
             @Movement.performed += instance.OnMovement;
             @Movement.canceled += instance.OnMovement;
-            @TakeCover.started += instance.OnTakeCover;
-            @TakeCover.performed += instance.OnTakeCover;
-            @TakeCover.canceled += instance.OnTakeCover;
+            @Cover.started += instance.OnCover;
+            @Cover.performed += instance.OnCover;
+            @Cover.canceled += instance.OnCover;
             @Shoot.started += instance.OnShoot;
             @Shoot.performed += instance.OnShoot;
             @Shoot.canceled += instance.OnShoot;
@@ -326,6 +349,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @ADS.started += instance.OnADS;
             @ADS.performed += instance.OnADS;
             @ADS.canceled += instance.OnADS;
+            @Reload.started += instance.OnReload;
+            @Reload.performed += instance.OnReload;
+            @Reload.canceled += instance.OnReload;
         }
 
         private void UnregisterCallbacks(IPlayerMovementActions instance)
@@ -333,9 +359,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Movement.started -= instance.OnMovement;
             @Movement.performed -= instance.OnMovement;
             @Movement.canceled -= instance.OnMovement;
-            @TakeCover.started -= instance.OnTakeCover;
-            @TakeCover.performed -= instance.OnTakeCover;
-            @TakeCover.canceled -= instance.OnTakeCover;
+            @Cover.started -= instance.OnCover;
+            @Cover.performed -= instance.OnCover;
+            @Cover.canceled -= instance.OnCover;
             @Shoot.started -= instance.OnShoot;
             @Shoot.performed -= instance.OnShoot;
             @Shoot.canceled -= instance.OnShoot;
@@ -348,6 +374,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @ADS.started -= instance.OnADS;
             @ADS.performed -= instance.OnADS;
             @ADS.canceled -= instance.OnADS;
+            @Reload.started -= instance.OnReload;
+            @Reload.performed -= instance.OnReload;
+            @Reload.canceled -= instance.OnReload;
         }
 
         public void RemoveCallbacks(IPlayerMovementActions instance)
@@ -368,10 +397,11 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     public interface IPlayerMovementActions
     {
         void OnMovement(InputAction.CallbackContext context);
-        void OnTakeCover(InputAction.CallbackContext context);
+        void OnCover(InputAction.CallbackContext context);
         void OnShoot(InputAction.CallbackContext context);
         void OnShoulderChange(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
         void OnADS(InputAction.CallbackContext context);
+        void OnReload(InputAction.CallbackContext context);
     }
 }

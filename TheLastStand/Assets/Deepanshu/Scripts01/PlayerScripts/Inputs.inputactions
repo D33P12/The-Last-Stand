@@ -15,7 +15,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "TakeCover",
+                    "name": "Cover",
                     "type": "Button",
                     "id": "58cdb4b3-74a2-4cf9-a646-ceb1731cf212",
                     "expectedControlType": "",
@@ -54,6 +54,15 @@
                     "name": "ADS",
                     "type": "Button",
                     "id": "52891a08-8f08-4c48-976e-d553bd4eaf47",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Reload",
+                    "type": "Button",
+                    "id": "bd2795c9-6d4f-4b1b-af06-22536c6dce08",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -123,7 +132,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "TakeCover",
+                    "action": "Cover",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -134,7 +143,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "TakeCover",
+                    "action": "Cover",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -179,6 +188,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ADS",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fe5718f0-7ac0-4ca9-afa9-ce46e7edabe2",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Reload",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
