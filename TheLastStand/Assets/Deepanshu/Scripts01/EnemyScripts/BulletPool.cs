@@ -4,11 +4,9 @@ using UnityEngine;
 public class BulletPool : MonoBehaviour
 {
     public static BulletPool Instance;
-
     public GameObject bulletPrefab;
     public int poolSize = 10;
     private Queue<GameObject> bulletPool = new Queue<GameObject>();
-
     private void Awake()
     {
         Instance = this;
