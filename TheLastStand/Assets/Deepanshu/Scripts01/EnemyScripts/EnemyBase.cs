@@ -1,8 +1,9 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyBase : MonoBehaviour
+public class EnemyBase : MonoBehaviour, IInteractable
 {
     [SerializeField] 
     private NavMeshAgent agent;
@@ -10,19 +11,27 @@ public class EnemyBase : MonoBehaviour
     public Transform player;
     public LayerMask playerLayer;
     public Transform firePoint;
+    
     [Header("Enemy Settings")] 
+    
     public float enemyRange = 10f;
     public float fireRate = 1f;
     public float bulletSpeed = 10f;
     public int bulletsPerRound = 3;
     private int currentPatrolIndex = 0;
     private EnemyStateMachine stateMachine;
+    [SerializeField]
+    private int maxHealth = 100;
+    private int currentHealth;
     
+    [SerializeField] private TextMeshProUGUI healthText;
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         stateMachine = new EnemyStateMachine();
         stateMachine.ChangeState(new PatrolState(stateMachine, this));
+        currentHealth = maxHealth;
+        UpdateHealthUI();
     }
     void Update()
     {
@@ -66,11 +75,31 @@ public class EnemyBase : MonoBehaviour
             bullet.transform.position = firePoint.position;
             bullet.transform.rotation = firePoint.rotation;
             EnemyBullet bulletScript = bullet.GetComponent<EnemyBullet>();
+            
             if (bulletScript != null)
             {
                 bulletScript.SetSpeed(bulletSpeed);
             }
             yield return new WaitForSeconds(fireRate);
         }
+    }
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        UpdateHealthUI();
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+    private void UpdateHealthUI()
+    {
+        if (healthText != null)
+            healthText.text = $"Health: {currentHealth}";
+    }
+    private void Die()
+    {
+        stateMachine.ChangeState(new DeathState(stateMachine, this));
     }
 }

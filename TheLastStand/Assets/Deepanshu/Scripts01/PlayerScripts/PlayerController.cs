@@ -14,11 +14,11 @@ public class PlayerController : MonoBehaviour
     private Inputs _controls;
     private Vector2 _movement;
     private Vector2 _lookDelta;
-
-    [SerializeField] private Transform coverPoint;
-    private bool isInCover = false;
-    private Vector3 coverPosition;
-
+    
+    [SerializeField] private int maxHealth = 100;
+    private int currentHealth;
+    [SerializeField] private TextMeshProUGUI healthText;
+    
     [SerializeField] public Transform shootPoint;
 
     [Header("Movement Settings")]
@@ -36,8 +36,7 @@ public class PlayerController : MonoBehaviour
     private float yaw;
     private float pitch;
     private bool isADS = false;
-
-    [SerializeField] private TextMeshProUGUI coverStatusText;
+    
     [Header("Camera & ADS Settings")]
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private Camera playerCamera;
@@ -53,6 +52,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Vector3 rightShoulderPos = new Vector3(0.5f, 1.5f, -3f);
     
     private bool isLeftShoulder = false;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+        UpdateHealthUI();
+    }
     private void Awake()
     {
         _controls = new Inputs();
@@ -72,16 +77,14 @@ public class PlayerController : MonoBehaviour
             playerCamera.transform.localPosition = defaultCamLocalPos;
             playerCamera.fieldOfView = defaultFOV;
         }
+    
     }
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
 
     private void Update()
     {
-        if (!isInCover)
-        {
-            HandleMovement();
-        }
+        HandleMovement();
         HandleLook();
         UpdateCamera();
     }
@@ -121,6 +124,25 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 recoilForce = shootDirection * recoilAmount;
         rb.AddForce(-recoilForce, ForceMode.Impulse);
+    }
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        UpdateHealthUI();
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+    private void UpdateHealthUI()
+    {
+        if (healthText != null)
+            healthText.text = $"Player Health: {currentHealth}";
+    }
+    private void Die()
+    {
+        Debug.Log("Player Died!");
     }
 }
 

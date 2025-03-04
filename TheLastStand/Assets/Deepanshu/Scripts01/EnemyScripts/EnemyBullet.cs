@@ -3,7 +3,9 @@ using UnityEngine;
 public class EnemyBullet : MonoBehaviour
 {
     private float speed = 10f;
-    private float lifetime = 40f;
+    private float lifetime = 15f; 
+    public int damage = 10; 
+
     public void SetSpeed(float newSpeed)
     {
         speed = newSpeed;
@@ -21,6 +23,11 @@ public class EnemyBullet : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            PlayerController player = other.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                player.TakeDamage(damage);
+            }
             ReturnToPool();
         }
     }
