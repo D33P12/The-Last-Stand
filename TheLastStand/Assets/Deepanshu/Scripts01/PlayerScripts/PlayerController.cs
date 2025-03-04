@@ -64,7 +64,6 @@ public class PlayerController : MonoBehaviour
         _controls.PlayerMovement.ADS.performed += ctx => ToggleADS(true);
         _controls.PlayerMovement.ADS.canceled += ctx => ToggleADS(false);
         _controls.PlayerMovement.ShoulderChange.performed += ctx => SwitchShoulder(); 
-        _controls.PlayerMovement.Cover.started += ctx => TryTakeCover();
         baseYaw = transform.eulerAngles.y;
         yaw = baseYaw;
         pitch = 0f;
@@ -86,64 +85,8 @@ public class PlayerController : MonoBehaviour
         HandleLook();
         UpdateCamera();
     }
-
-    private void TryTakeCover()
-    {
-        if (isInCover)
-        {
-            ExitCover();
-        }
-        else
-        {
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, transform.forward, out hit, 2f))
-            {
-                IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                interactable?.Interact(this);
-            }
-        }
-    }
-    public void ToggleCover(Vector3 position)
-    {
-        if (isInCover)
-            ExitCover();
-        else
-            EnterCover(position);
-    }
-  private void EnterCover(Vector3 position)
-{
-    isInCover = true;
-    coverPosition = coverPoint.position;
-    transform.position = coverPosition; 
-    UpdateCoverStatus();
-    rb.isKinematic = true;
-    if (shootiController != null)
-    {
-        shootiController.SetInCover(true);
-    }
-}
-private void ExitCover()
-{
-    isInCover = false;
-    UpdateCoverStatus();
-    rb.isKinematic = false;
-
-    if (shootiController != null)
-    {
-        shootiController.SetInCover(false);
-    }
-}
-private void UpdateCoverStatus()
-    {
-        if (coverStatusText != null)
-        {
-            coverStatusText.text = isInCover ? "In Cover" : "Not in Cover";
-        }
-    }
     private void HandleMovement()
     {
-        if (isInCover) return;
-
         Vector3 inputDir = new Vector3(_movement.x, 0, _movement.y);
         inputDir = transform.TransformDirection(inputDir);
         rb.linearVelocity = new Vector3(inputDir.x * moveSpeed, rb.linearVelocity.y, inputDir.z * moveSpeed);
@@ -169,12 +112,10 @@ private void UpdateCoverStatus()
     private void ToggleADS(bool isActive)
     {
         isADS = isActive;
-        Debug.Log(isADS ? "ADS Enabled" : "ADS Disabled");
     }
     private void SwitchShoulder()
     {
         isLeftShoulder = !isLeftShoulder;
-        Debug.Log(isLeftShoulder ? "Switched to Left Shoulder" : "Switched to Right Shoulder");
     }
     public void ApplyRecoil(Vector3 shootDirection)
     {
