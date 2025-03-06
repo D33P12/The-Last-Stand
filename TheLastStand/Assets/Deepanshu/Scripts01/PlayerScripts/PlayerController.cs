@@ -140,6 +140,13 @@ public class PlayerController : MonoBehaviour
         if (healthText != null)
             healthText.text = $"Player Health: {currentHealth}";
     }
+    
+    public void Heal(int amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        Debug.Log("Health Refilled: " + currentHealth);
+        UpdateHealthUI();
+    }
     private void Die()
     {
         Debug.Log("Player Died!");

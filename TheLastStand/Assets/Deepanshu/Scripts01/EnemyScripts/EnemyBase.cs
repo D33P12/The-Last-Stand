@@ -23,7 +23,9 @@ public class EnemyBase : MonoBehaviour, IInteractable
     [SerializeField]
     private int maxHealth = 100;
     private int currentHealth;
-    
+    [SerializeField] private GameObject[] dropPrefabs;
+    [SerializeField] private Transform dropSpawnPoint;
+    private bool isDead = false;
     [SerializeField] private TextMeshProUGUI healthText;
     void Start()
     {
@@ -85,10 +87,13 @@ public class EnemyBase : MonoBehaviour, IInteractable
     }
     public void TakeDamage(int damage)
     {
+        if (isDead) return; 
+
         currentHealth -= damage;
+        if (currentHealth < 0) currentHealth = 0; 
         UpdateHealthUI();
 
-        if (currentHealth <= 0)
+        if (currentHealth == 0)
         {
             Die();
         }
@@ -96,10 +101,23 @@ public class EnemyBase : MonoBehaviour, IInteractable
     private void UpdateHealthUI()
     {
         if (healthText != null)
-            healthText.text = $"Health: {currentHealth}";
+            healthText.text = $" Enemy Health: {currentHealth}";
     }
     private void Die()
     {
+        if (isDead) return;
+        isDead = true;
+
+        if (dropPrefabs.Length > 0)
+        {
+            int randomIndex = Random.Range(0, dropPrefabs.Length);
+            Vector3 spawnPosition = dropSpawnPoint != null ? dropSpawnPoint.position : transform.position;
+
+            Instantiate(dropPrefabs[randomIndex], spawnPosition, Quaternion.identity);
+        }
+    
         stateMachine.ChangeState(new DeathState(stateMachine, this));
+
+        Destroy(gameObject, 2f);
     }
 }

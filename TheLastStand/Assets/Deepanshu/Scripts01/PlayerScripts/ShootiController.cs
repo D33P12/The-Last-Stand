@@ -87,7 +87,9 @@ public class ShootiController : MonoBehaviour
 
             Rigidbody rb = bullet.GetComponent<Rigidbody>();
             if (rb != null)
-                rb.linearVelocity = shootDir * bulletSpeed;
+            {
+                rb.linearVelocity = shootDir * bulletSpeed; 
+            }
 
             StartCoroutine(ReturnBulletToPool(bullet, 2f));
         }
@@ -145,9 +147,10 @@ public class ShootiController : MonoBehaviour
         if (ammoText != null)
             ammoText.text = $"{currentAmmo}/{carryingAmmo}";
     }
-
-    public void SetInCover(bool isInCover)
+    public void RefillMaxAmmo(int amount)
     {
-        this.isInCover = isInCover;
+        int ammoToAdd = Mathf.Min(amount, maxCarryingAmmo - carryingAmmo);
+        carryingAmmo += ammoToAdd;
+        UpdateAmmoDisplay();
     }
 }

@@ -11,5 +11,16 @@ public class PlayerBullet : MonoBehaviour
             enemy.TakeDamage(bulletDamage);
             gameObject.SetActive(false); 
         }
+
+        if (other.TryGetComponent<ICollectable>(out ICollectable collectible))
+        {
+            PlayerController player = FindFirstObjectByType<PlayerController>();
+            if (player != null)
+            {
+                collectible.Collect(player);
+            }
+
+            Destroy(gameObject); 
+        }
     }
 }

@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
 {
-    private float speed = 10f;
-    private float lifetime = 15f; 
+    private float speed = 3f;
+    private float lifetime = 10f; 
     public int damage = 10; 
 
     public void SetSpeed(float newSpeed)
@@ -20,7 +20,7 @@ public class EnemyBullet : MonoBehaviour
         BulletPool.Instance.ReturnBullet(gameObject);
     }
     private void OnTriggerEnter(Collider other)
-    {
+    { 
         if (other.CompareTag("Player"))
         {
             PlayerController player = other.GetComponent<PlayerController>();
