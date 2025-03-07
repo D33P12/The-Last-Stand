@@ -281,16 +281,17 @@ MonoBehaviour:
   agent: {fileID: 1362104655548756732}
   firePoint: {fileID: 5470619796000333825}
   enemyRange: 150.7
-  fireRate: 0.91
-  bulletSpeed: 41.7
+  fireRate: 0.75
+  bulletSpeed: 30
   bulletsPerRound: 1
-  randomMoveRadius: 10
+  randomMoveRadius: 45
   maxHealth: 100
   dropPrefabs:
   - {fileID: 8264121078977681312, guid: ce9358f2faf7dda47ae4351bca3d2cd2, type: 3}
   - {fileID: 6227712787571007101, guid: 4720407a46b3eba4db013f2878120b93, type: 3}
   dropSpawnPoint: {fileID: 2180068956471427851}
   healthBar: {fileID: 7908847676340049384}
+  healthCanvas: {fileID: 648751380809924543}
 --- !u!136 &7916758165647573646
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -408,7 +409,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -483,7 +484,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

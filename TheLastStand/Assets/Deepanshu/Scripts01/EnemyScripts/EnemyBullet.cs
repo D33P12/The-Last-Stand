@@ -2,33 +2,50 @@ using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
 {
-    private float speed = 3f;
-    private float lifetime = 10f; 
-    public int damage = 10; 
+    private float _speed = 3f;
+    private float _lifetime = 10f;
+    public int damage = 10;
+    private Rigidbody _rb;
 
+    private void Awake()
+    {
+        _rb = GetComponent<Rigidbody>();
+        if (_rb == null)
+        {
+            Debug.LogError("No Rigidbody found on bullet!", this);
+        }
+    }
     public void SetSpeed(float newSpeed)
     {
-        speed = newSpeed;
-        Invoke(nameof(ReturnToPool), lifetime);
-    }
-    private void Update()
-    {
-        transform.Translate(Vector3.forward * (speed * Time.deltaTime));
-    }
-    private void ReturnToPool()
-    {
-        BulletPool.Instance.ReturnBullet(gameObject);
+        _speed = newSpeed;
+        _rb.linearVelocity = transform.forward * _speed; 
+        Invoke(nameof(ReturnToPool), _lifetime);
     }
     private void OnTriggerEnter(Collider other)
-    { 
-        if (other.CompareTag("Player"))
+    {
+        IDamageable damageable = other.GetComponent<IDamageable>();
+        if (damageable != null)
         {
-            PlayerController player = other.GetComponent<PlayerController>();
-            if (player != null)
+            damageable.TakeDamage(damage);
+            ReturnToPool();
+            return;
+        }
+
+        IObstacle obstacle = other.GetComponent<IObstacle>();
+        if (obstacle != null)
+        {
+            Obstacle specificObstacle = other.GetComponent<Obstacle>();
+            if (specificObstacle != null)
             {
-                player.TakeDamage(damage);
+                specificObstacle.OnBulletHit();
             }
             ReturnToPool();
         }
+    }
+    private void ReturnToPool()
+    {
+        _rb.linearVelocity = Vector3.zero;
+        gameObject.SetActive(false);
+        BulletPool.Instance.ReturnBullet(gameObject);
     }
 }

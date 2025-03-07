@@ -2,12 +2,12 @@ using UnityEngine;
 
 public abstract class EnemyBaseState 
 {
-    protected EnemyStateMachine stateMachine;
-    protected EnemyBase enemy;
+    protected EnemyStateMachine StateMachine;
+    protected EnemyBase Enemy;
     public EnemyBaseState(EnemyStateMachine stateMachine, EnemyBase enemy)
     {
-        this.stateMachine = stateMachine;
-        this.enemy = enemy;
+        this.StateMachine = stateMachine;
+        this.Enemy = enemy;
     }
     public abstract void EnterState();
     public abstract void UpdateState();

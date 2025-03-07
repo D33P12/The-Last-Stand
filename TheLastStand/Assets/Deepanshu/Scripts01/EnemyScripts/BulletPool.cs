@@ -6,7 +6,7 @@ public class BulletPool : MonoBehaviour
     public static BulletPool Instance;
     public GameObject bulletPrefab;
     public int poolSize = 10;
-    private Queue<GameObject> bulletPool = new Queue<GameObject>();
+    private Queue<GameObject> _bulletPool = new Queue<GameObject>();
     private void Awake()
     {
         Instance = this;
@@ -18,26 +18,33 @@ public class BulletPool : MonoBehaviour
         {
             GameObject bullet = Instantiate(bulletPrefab);
             bullet.SetActive(false);
-            bulletPool.Enqueue(bullet);
+            _bulletPool.Enqueue(bullet);
         }
     }
     public GameObject GetBullet()
     {
-        if (bulletPool.Count > 0)
+        GameObject bullet;
+        if (_bulletPool.Count > 0)
         {
-            GameObject bullet = bulletPool.Dequeue();
-            bullet.SetActive(true);
-            return bullet;
+            bullet = _bulletPool.Dequeue();
         }
         else
         {
-            GameObject newBullet = Instantiate(bulletPrefab);
-            return newBullet;
+            bullet = Instantiate(bulletPrefab);
         }
+        bullet.SetActive(true);
+        bullet.transform.position = Vector3.zero;
+        bullet.transform.rotation = Quaternion.identity;
+        Rigidbody rb = bullet.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+        }
+        return bullet;
     }
     public void ReturnBullet(GameObject bullet)
     {
         bullet.SetActive(false);
-        bulletPool.Enqueue(bullet);
+        _bulletPool.Enqueue(bullet);
     }
 }

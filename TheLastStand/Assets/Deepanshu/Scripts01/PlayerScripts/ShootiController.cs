@@ -2,31 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-
 public class ShootiController : MonoBehaviour
 {
     private Inputs _controls;
-    private bool isShooting = false;
-    private bool isReloading = false;
-    private bool isInCover = false;
-    [SerializeField] private float shootCooldown = 0.1f;
-    private float lastShootTime = 0f;
+    private bool _isShooting = false;
+    private bool _isReloading = false;
+    private bool _isInCover = false;
+    private float _lastShootTime = 0f;
 
     [Header("Shooting References")]
-    [SerializeField] private Camera shootCamera;
+    [SerializeField] internal Camera shootCamera;
     [SerializeField] private Transform shootPoint;
 
     [Header("Shooting Settings")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 20f;
     [SerializeField] private int poolSize = 10;
-    private Queue<GameObject> bulletPool = new Queue<GameObject>();
+    private Queue<GameObject> _bulletPool = new Queue<GameObject>();
 
     [Header("Ammo Settings")]
     [SerializeField] private int maxAmmo = 30;
     [SerializeField] private int maxCarryingAmmo = 120;
-    private int currentAmmo;
-    private int carryingAmmo;
+    private int _currentAmmo;
+    private int _carryingAmmo;
 
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI ammoText;
@@ -35,69 +33,79 @@ public class ShootiController : MonoBehaviour
     [Header("Reload Settings")]
     [SerializeField] private float reloadTime = 2f;
 
-    private PlayerController playerController;
+    [Header("Recoil Settings")]
+    [SerializeField] private float recoilAmount = 2f;
+    [SerializeField] private float recoilRecoverySpeed = 5f; 
+    [SerializeField] private float upwardRecoilRotationAmount = 5f; 
 
+    private Quaternion _originalCameraRotation;
+    private bool _isRecoiling = false;
+    public bool IsShooting => _isShooting; 
     private void Awake()
     {
         _controls = new Inputs();
-        _controls.PlayerMovement.Shoot.started += ctx => isShooting = true;
-        _controls.PlayerMovement.Shoot.canceled += ctx => isShooting = false;
+        _controls.PlayerMovement.Shoot.started += ctx => Shoot();
         _controls.PlayerMovement.Reload.started += ctx => Reload();
 
         InitializeBulletPool();
-        playerController = GetComponent<PlayerController>();
+        _currentAmmo = maxAmmo;
+        _carryingAmmo = maxCarryingAmmo;
 
-        currentAmmo = maxAmmo;
-        carryingAmmo = maxCarryingAmmo;
+        if (shootCamera != null)
+        {
+            _originalCameraRotation = shootCamera.transform.localRotation;
+        }
     }
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
-
     private void Update()
     {
-        if (isShooting && Time.time - lastShootTime >= shootCooldown && currentAmmo > 0 && !isReloading && !isInCover)
+        if (_isRecoiling)
         {
-            Shoot();
-            lastShootTime = Time.time;
+            shootCamera.transform.localRotation = Quaternion.Lerp(shootCamera.transform.localRotation, _originalCameraRotation, Time.deltaTime * recoilRecoverySpeed);
         }
-
         UpdateAmmoDisplay();
     }
     private void Shoot()
     {
-        if (isReloading || isInCover) return;
-
+        if (_isReloading || _isInCover || _currentAmmo <= 0 || Time.time - _lastShootTime < 0.1f) return;
+        _isShooting = true; 
+        _lastShootTime = Time.time;
         Vector3 screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
         Ray camRay = shootCamera.ScreenPointToRay(screenCenter);
         Vector3 targetPoint;
-
         if (Physics.Raycast(camRay, out RaycastHit hit, 100f))
             targetPoint = hit.point;
         else
             targetPoint = camRay.origin + camRay.direction * 100f;
-
         Vector3 shootDir = (targetPoint - shootPoint.position).normalized;
         GameObject bullet = GetBulletFromPool();
-
         if (bullet != null)
         {
             bullet.transform.position = shootPoint.position;
             bullet.transform.rotation = Quaternion.LookRotation(shootDir);
             bullet.SetActive(true);
-
             Rigidbody rb = bullet.GetComponent<Rigidbody>();
             if (rb != null)
-            {
-                rb.linearVelocity = shootDir * bulletSpeed; 
-            }
+                rb.linearVelocity = shootDir * bulletSpeed;
 
             StartCoroutine(ReturnBulletToPool(bullet, 2f));
         }
-
-        if (playerController != null)
-            playerController.ApplyRecoil(shootDir);
-
-        currentAmmo--;
+        ApplyRecoil();
+        _currentAmmo--;
+    }
+    private void ApplyRecoil()
+    {
+        if (shootCamera == null) return;
+        Vector3 recoilOffset = new Vector3(
+            Random.Range(-recoilAmount, recoilAmount) * 0.1f,
+            Random.Range(-recoilAmount, recoilAmount) * 0.1f,
+            0
+        );
+        Quaternion upwardRecoil = Quaternion.Euler(upwardRecoilRotationAmount, 0, 0);
+        shootCamera.transform.localRotation *= upwardRecoil;
+        shootCamera.transform.localPosition += recoilOffset;
+        _isRecoiling = true;
     }
     private void InitializeBulletPool()
     {
@@ -105,14 +113,14 @@ public class ShootiController : MonoBehaviour
         {
             GameObject bullet = Instantiate(bulletPrefab);
             bullet.SetActive(false);
-            bulletPool.Enqueue(bullet);
+            _bulletPool.Enqueue(bullet);
         }
     }
     private GameObject GetBulletFromPool()
     {
-        if (bulletPool.Count > 0)
+        if (_bulletPool.Count > 0)
         {
-            GameObject bullet = bulletPool.Dequeue();
+            GameObject bullet = _bulletPool.Dequeue();
             return bullet;
         }
         return Instantiate(bulletPrefab);
@@ -121,36 +129,34 @@ public class ShootiController : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         bullet.SetActive(false);
-        bulletPool.Enqueue(bullet);
+        _bulletPool.Enqueue(bullet);
     }
     private void Reload()
     {
-        if (isReloading || currentAmmo == maxAmmo || carryingAmmo == 0) return;
+        if (_isReloading || _currentAmmo == maxAmmo || _carryingAmmo == 0) return;
         StartCoroutine(ReloadCoroutine());
     }
     private IEnumerator ReloadCoroutine()
     {
-        isReloading = true;
+        _isReloading = true;
         reloadText.text = "Reloading...";
-
         yield return new WaitForSeconds(reloadTime);
-
-        int ammoToReload = Mathf.Min(maxAmmo - currentAmmo, carryingAmmo);
-        currentAmmo += ammoToReload;
-        carryingAmmo -= ammoToReload;
+        int ammoToReload = Mathf.Min(maxAmmo - _currentAmmo, _carryingAmmo);
+        _currentAmmo += ammoToReload;
+        _carryingAmmo -= ammoToReload;
 
         reloadText.text = "";
-        isReloading = false;
+        _isReloading = false;
     }
     private void UpdateAmmoDisplay()
     {
         if (ammoText != null)
-            ammoText.text = $"{currentAmmo}/{carryingAmmo}";
+            ammoText.text = $"{_currentAmmo}/{_carryingAmmo}";
     }
     public void RefillMaxAmmo(int amount)
     {
-        int ammoToAdd = Mathf.Min(amount, maxCarryingAmmo - carryingAmmo);
-        carryingAmmo += ammoToAdd;
+        int ammoToAdd = Mathf.Min(amount, maxCarryingAmmo - _carryingAmmo);
+        _carryingAmmo += ammoToAdd;
         UpdateAmmoDisplay();
     }
 }

@@ -2,29 +2,29 @@ using UnityEngine;
 
 public class PatrolState : EnemyBaseState
 {
-    private bool reachedPoint = false;
-    private Vector3 randomDestination;
+    private bool _reachedPoint = false;
+    private Vector3 _randomDestination;
     public PatrolState(EnemyStateMachine stateMachine, EnemyBase enemy) : base(stateMachine, enemy) {}
     public override void EnterState()
     {
         SetRandomDestination();
-        reachedPoint = false;
+        _reachedPoint = false;
     }
     public override void UpdateState()
     {
-        if (enemy.IsStationary() && !reachedPoint)
+        if (Enemy.IsStationary() && !_reachedPoint)
         {
-            reachedPoint = true;
-            stateMachine.ChangeState(new AttackState(stateMachine, enemy)); 
+            _reachedPoint = true;
+            StateMachine.ChangeState(new AttackState(StateMachine, Enemy)); 
         }
     }
     public override void ExitState() {}
     private void SetRandomDestination()
     {
         Vector3 randomDirection = Random.insideUnitSphere * 10f; 
-        randomDirection += enemy.transform.position; 
-        randomDirection.y = enemy.transform.position.y; 
+        randomDirection += Enemy.transform.position; 
+        randomDirection.y = Enemy.transform.position.y; 
         
-        enemy.agent.SetDestination(randomDirection);
+        Enemy.agent.SetDestination(randomDirection);
     }
 }

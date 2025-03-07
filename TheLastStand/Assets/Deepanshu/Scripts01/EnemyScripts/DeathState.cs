@@ -6,7 +6,7 @@ public class DeathState : EnemyBaseState
     public override void EnterState()
     {
         Debug.Log("Enemy is dead!");
-        GameObject.Destroy(enemy.gameObject, 2f);
+        GameObject.Destroy(Enemy.gameObject, 2f);
     }
     public override void UpdateState() { }
     public override void ExitState() { }

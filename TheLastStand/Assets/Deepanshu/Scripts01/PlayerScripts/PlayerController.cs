@@ -9,34 +9,31 @@ public enum CameraState
     Default,
     Ads
 }
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamageable
 { 
     private Inputs _controls;
     private Vector2 _movement;
     private Vector2 _lookDelta;
     
     [SerializeField] private int maxHealth = 100;
-    private int currentHealth;
+    private int _currentHealth;
     [SerializeField] private TextMeshProUGUI healthText;
-    
     [SerializeField] public Transform shootPoint;
-
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Rigidbody rb;
-
+    [SerializeField] private float adsMoveSpeed = 3f;  
     [Header("Recoil (Shooting)")]
     [SerializeField] private float recoilAmount = 0.2f;
 
     [Header("Mouse Look Settings")]
     [SerializeField] private float mouseSensitivity = 2f;
-    [SerializeField] private float yawClamp = 90f;
+    //[SerializeField] private float yawClamp = 90f;
     [SerializeField] private float pitchClamp = 80f;
-    private float baseYaw;
-    private float yaw;
-    private float pitch;
-    private bool isADS = false;
-    
+    private float _baseYaw;
+    private float _yaw;
+    private float _pitch;
+    private bool _isAds = false;
     [Header("Camera & ADS Settings")]
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private Camera playerCamera;
@@ -45,39 +42,38 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Vector3 adsCamLocalPos = new Vector3(0.5f, 1.5f, -1.5f);
     [SerializeField] private float defaultFOV = 90f;
     [SerializeField] private float adsFOV = 40f;
-    private ShootiController shootiController;
+    private ShootiController _shootiController;
     
     [Header("Shoulder Switching")]
     [SerializeField] private Vector3 leftShoulderPos = new Vector3(-0.5f, 1.5f, -3f);
     [SerializeField] private Vector3 rightShoulderPos = new Vector3(0.5f, 1.5f, -3f);
     
-    private bool isLeftShoulder = false;
+    private bool _isLeftShoulder = false;
 
     void Start()
     {
-        currentHealth = maxHealth;
+        _currentHealth = maxHealth;
         UpdateHealthUI();
     }
     private void Awake()
     {
         _controls = new Inputs();
-        shootiController = GetComponent<ShootiController>();
+        _shootiController = GetComponent<ShootiController>();
         _controls.PlayerMovement.Movement.performed += ctx => _movement = ctx.ReadValue<Vector2>();
         _controls.PlayerMovement.Movement.canceled += ctx => _movement = Vector2.zero;
         _controls.PlayerMovement.Look.performed += ctx => _lookDelta = ctx.ReadValue<Vector2>();
         _controls.PlayerMovement.Look.canceled += ctx => _lookDelta = Vector2.zero;
-        _controls.PlayerMovement.ADS.performed += ctx => ToggleADS(true);
-        _controls.PlayerMovement.ADS.canceled += ctx => ToggleADS(false);
+        _controls.PlayerMovement.ADS.performed += ctx => ToggleAds(true);
+        _controls.PlayerMovement.ADS.canceled += ctx => ToggleAds(false);
         _controls.PlayerMovement.ShoulderChange.performed += ctx => SwitchShoulder(); 
-        baseYaw = transform.eulerAngles.y;
-        yaw = baseYaw;
-        pitch = 0f;
+        _baseYaw = transform.eulerAngles.y;
+        _yaw = _baseYaw;
+        _pitch = 0f;
         if (playerCamera != null)
         {
             playerCamera.transform.localPosition = defaultCamLocalPos;
             playerCamera.fieldOfView = defaultFOV;
         }
-    
     }
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
@@ -87,38 +83,50 @@ public class PlayerController : MonoBehaviour
         HandleMovement();
         HandleLook();
         UpdateCamera();
+        if (_isAds)
+        {
+            moveSpeed = 2f; 
+        }
+        else
+        {
+            moveSpeed = 5f; 
+        }
     }
     private void HandleMovement()
     {
+       
+        float currentMoveSpeed = moveSpeed;
+
+        if (_isAds) currentMoveSpeed = adsMoveSpeed; 
         Vector3 inputDir = new Vector3(_movement.x, 0, _movement.y);
         inputDir = transform.TransformDirection(inputDir);
         rb.linearVelocity = new Vector3(inputDir.x * moveSpeed, rb.linearVelocity.y, inputDir.z * moveSpeed);
     }
     private void HandleLook()
     {
-        yaw += _lookDelta.x * mouseSensitivity;
-        pitch -= _lookDelta.y * mouseSensitivity;
-        pitch = Mathf.Clamp(pitch, -pitchClamp, pitchClamp);
-        yaw = Mathf.Clamp(yaw, baseYaw - yawClamp, baseYaw + yawClamp);
-        transform.rotation = Quaternion.Euler(0, yaw, 0);
-        if (cameraPivot != null) cameraPivot.localRotation = Quaternion.Euler(pitch, 0, 0);
+        _yaw += _lookDelta.x * mouseSensitivity;
+        _pitch -= _lookDelta.y * mouseSensitivity;
+        _pitch = Mathf.Clamp(_pitch, -pitchClamp, pitchClamp);
+        //_yaw = Mathf.Clamp(_yaw, _baseYaw - yawClamp, _baseYaw + yawClamp);
+        transform.rotation = Quaternion.Euler(0, _yaw, 0);
+        if (cameraPivot != null) cameraPivot.localRotation = Quaternion.Euler(_pitch, 0, 0);
     }
     private void UpdateCamera()
     {
         if (playerCamera != null)
         {
-            Vector3 targetPosition = isADS ? adsCamLocalPos : (isLeftShoulder ? leftShoulderPos : rightShoulderPos);
+            Vector3 targetPosition = _isAds ? adsCamLocalPos : (_isLeftShoulder ? leftShoulderPos : rightShoulderPos);
             playerCamera.transform.localPosition = Vector3.Lerp(playerCamera.transform.localPosition, targetPosition, Time.deltaTime * cameraDamping);
-            playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, isADS ? adsFOV : defaultFOV, Time.deltaTime * cameraDamping);
+            playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, _isAds ? adsFOV : defaultFOV, Time.deltaTime * cameraDamping);
         }
     }
-    private void ToggleADS(bool isActive)
+    private void ToggleAds(bool isActive)
     {
-        isADS = isActive;
+        _isAds = isActive;
     }
     private void SwitchShoulder()
     {
-        isLeftShoulder = !isLeftShoulder;
+        _isLeftShoulder = !_isLeftShoulder;
     }
     public void ApplyRecoil(Vector3 shootDirection)
     {
@@ -127,10 +135,9 @@ public class PlayerController : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
+        _currentHealth -= damage;
         UpdateHealthUI();
-
-        if (currentHealth <= 0)
+        if (_currentHealth <= 0)
         {
             Die();
         }
@@ -138,13 +145,12 @@ public class PlayerController : MonoBehaviour
     private void UpdateHealthUI()
     {
         if (healthText != null)
-            healthText.text = $"Player Health: {currentHealth}";
+            healthText.text = $"Player Health: {_currentHealth}";
     }
-    
     public void Heal(int amount)
     {
-        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-        Debug.Log("Health Refilled: " + currentHealth);
+        _currentHealth = Mathf.Min(_currentHealth + amount, maxHealth);
+        Debug.Log("Health Refilled: " + _currentHealth);
         UpdateHealthUI();
     }
     private void Die()
