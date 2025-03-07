@@ -1,65 +1,87 @@
 using System.Collections;
-using TMPro;
+
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class EnemyBase : MonoBehaviour, IInteractable
 {
-    [SerializeField] 
-    private NavMeshAgent agent;
-    public Transform[] patrolPoints;
-    public Transform player;
-    public LayerMask playerLayer;
+    [SerializeField] public NavMeshAgent agent;
+    private Transform player;
     public Transform firePoint;
-    
-    [Header("Enemy Settings")] 
-    
+
+    [Header("Enemy Settings")]
     public float enemyRange = 10f;
     public float fireRate = 1f;
     public float bulletSpeed = 10f;
     public int bulletsPerRound = 3;
-    private int currentPatrolIndex = 0;
+    public float randomMoveRadius = 10f;
+
     private EnemyStateMachine stateMachine;
-    [SerializeField]
-    private int maxHealth = 100;
+
+    [SerializeField] private int maxHealth = 100;
     private int currentHealth;
     [SerializeField] private GameObject[] dropPrefabs;
     [SerializeField] private Transform dropSpawnPoint;
     private bool isDead = false;
-    [SerializeField] private TextMeshProUGUI healthText;
+
+    [Header("Health UI")]
+    [SerializeField] private Slider healthBar;
+
+    private Camera playerCamera;
+
+    public void SetPlayer(Transform playerTransform)
+    {
+        player = playerTransform;
+    }
+    public void SetCamera(Camera cam)
+    {
+        playerCamera = cam;
+    }
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         stateMachine = new EnemyStateMachine();
         stateMachine.ChangeState(new PatrolState(stateMachine, this));
         currentHealth = maxHealth;
+
+        InitializeHealthBar();
         UpdateHealthUI();
+
+        if (WaveManager.Instance != null)
+        {
+            playerCamera = WaveManager.Instance.GetPlayerCamera();
+        }
     }
     void Update()
     {
         stateMachine.Update();
-        if (DetectPlayer())
+        if (player != null && DetectPlayer())
         {
             RotateTowardsPlayer();
         }
+
+        RotateHealthBar(); 
     }
     public void RotateTowardsPlayer()
     {
+        if (player == null) return;
+
         Vector3 direction = (player.position - transform.position).normalized;
-        direction.y = 0; 
+        direction.y = 0;
         Quaternion lookRotation = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f); 
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
     }
-    public void MoveToNextPatrolPoint()
+    private void RotateHealthBar()
     {
-        if (patrolPoints.Length == 0) return;
-        currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
-        agent.SetDestination(patrolPoints[currentPatrolIndex].position);
+        if (playerCamera == null || healthBar == null) return;
+
+        healthBar.transform.LookAt(healthBar.transform.position + playerCamera.transform.forward);
     }
     public bool DetectPlayer()
     {
-        float distance = Vector3.Distance(transform.position, player.position);
-        return distance <= enemyRange;
+        if (player == null) return false;
+        return Vector3.Distance(transform.position, player.position) <= enemyRange;
     }
     public bool IsStationary()
     {
@@ -77,7 +99,6 @@ public class EnemyBase : MonoBehaviour, IInteractable
             bullet.transform.position = firePoint.position;
             bullet.transform.rotation = firePoint.rotation;
             EnemyBullet bulletScript = bullet.GetComponent<EnemyBullet>();
-            
             if (bulletScript != null)
             {
                 bulletScript.SetSpeed(bulletSpeed);
@@ -87,37 +108,39 @@ public class EnemyBase : MonoBehaviour, IInteractable
     }
     public void TakeDamage(int damage)
     {
-        if (isDead) return; 
-
+        if (isDead) return;
         currentHealth -= damage;
-        if (currentHealth < 0) currentHealth = 0; 
+        if (currentHealth < 0) currentHealth = 0;
         UpdateHealthUI();
-
         if (currentHealth == 0)
         {
             Die();
         }
     }
+    private void InitializeHealthBar()
+    {
+        if (healthBar != null)
+        {
+            healthBar.maxValue = maxHealth;
+            healthBar.value = maxHealth;
+        }
+    }
     private void UpdateHealthUI()
     {
-        if (healthText != null)
-            healthText.text = $" Enemy Health: {currentHealth}";
+        if (healthBar != null)
+            healthBar.value = currentHealth;
     }
     private void Die()
     {
         if (isDead) return;
         isDead = true;
-
         if (dropPrefabs.Length > 0)
         {
             int randomIndex = Random.Range(0, dropPrefabs.Length);
             Vector3 spawnPosition = dropSpawnPoint != null ? dropSpawnPoint.position : transform.position;
-
             Instantiate(dropPrefabs[randomIndex], spawnPosition, Quaternion.identity);
         }
-    
-        stateMachine.ChangeState(new DeathState(stateMachine, this));
-
+        WaveManager.Instance.OnEnemyDeath();
         Destroy(gameObject, 2f);
     }
 }
