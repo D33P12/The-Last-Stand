@@ -14,46 +14,64 @@ public class PlayerController : MonoBehaviour, IDamageable
     private Inputs _controls;
     private Vector2 _movement;
     private Vector2 _lookDelta;
-    
+
     [SerializeField] private int maxHealth = 100;
     private int _currentHealth;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] public Transform shootPoint;
+
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float adsMoveSpeed = 3f;
     [SerializeField] private Rigidbody rb;
-    [SerializeField] private float adsMoveSpeed = 3f;  
+
     [Header("Recoil (Shooting)")]
     [SerializeField] private float recoilAmount = 0.2f;
 
     [Header("Mouse Look Settings")]
     [SerializeField] private float mouseSensitivity = 2f;
-    //[SerializeField] private float yawClamp = 90f;
     [SerializeField] private float pitchClamp = 80f;
-    private float _baseYaw;
+    
     private float _yaw;
     private float _pitch;
     private bool _isAds = false;
+
     [Header("Camera & ADS Settings")]
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private Camera playerCamera;
     [SerializeField] private float cameraDamping = 5f;
-    [SerializeField] private Vector3 defaultCamLocalPos = new Vector3(0.5f, 1.5f, -3f);
-    [SerializeField] private Vector3 adsCamLocalPos = new Vector3(0.5f, 1.5f, -1.5f);
+    [SerializeField] private Vector3 leftShoulderPos = new Vector3(-0.5f, 1.5f, -3f);
+    [SerializeField] private Vector3 rightShoulderPos = new Vector3(0.5f, 1.5f, -3f);
     [SerializeField] private float defaultFOV = 90f;
     [SerializeField] private float adsFOV = 40f;
     private ShootiController _shootiController;
     
-    [Header("Shoulder Switching")]
-    [SerializeField] private Vector3 leftShoulderPos = new Vector3(-0.5f, 1.5f, -3f);
-    [SerializeField] private Vector3 rightShoulderPos = new Vector3(0.5f, 1.5f, -3f);
+    [Header("Cover System")]
+    [SerializeField] private LayerMask coverLayer;
+    [SerializeField] private float coverCheckDistance = 2f;
+    [SerializeField] private Transform leftCoverPoint;
+    [SerializeField] private Transform rightCoverPoint;
+    [SerializeField] private float coverMoveSpeed = 2f;
     
-    private bool _isLeftShoulder = false;
+    private CapsuleCollider _capsule;
+    public bool _isInCover = false;
+    public Transform _currentCover;
+    
+    private Vector3 _coverDirection;
+    private Transform _closestCoverPoint;
+    private bool _isLeftShoulder = true;
+
+    [SerializeField] private Animator animator;
 
     void Start()
     {
         _currentHealth = maxHealth;
         UpdateHealthUI();
+        if (playerCamera != null)
+        {
+            playerCamera.transform.localPosition = leftShoulderPos;
+            playerCamera.fieldOfView = defaultFOV;
+        }
     }
     private void Awake()
     {
@@ -65,57 +83,53 @@ public class PlayerController : MonoBehaviour, IDamageable
         _controls.PlayerMovement.Look.canceled += ctx => _lookDelta = Vector2.zero;
         _controls.PlayerMovement.ADS.performed += ctx => ToggleAds(true);
         _controls.PlayerMovement.ADS.canceled += ctx => ToggleAds(false);
-        _controls.PlayerMovement.ShoulderChange.performed += ctx => SwitchShoulder(); 
-        _baseYaw = transform.eulerAngles.y;
-        _yaw = _baseYaw;
+        _controls.PlayerMovement.ShoulderChange.performed += ctx => SwitchShoulder();
+        _controls.PlayerMovement.Cover.started += ctx => TakeCover();
+        _yaw = transform.eulerAngles.y;
         _pitch = 0f;
-        if (playerCamera != null)
-        {
-            playerCamera.transform.localPosition = defaultCamLocalPos;
-            playerCamera.fieldOfView = defaultFOV;
-        }
     }
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
-
     private void Update()
     {
         HandleMovement();
         HandleLook();
         UpdateCamera();
-        if (_isAds)
+        if (_isInCover)
         {
-            moveSpeed = 2f; 
-        }
-        else
-        {
-            moveSpeed = 5f; 
+            HandleCoverMovement();
         }
     }
     private void HandleMovement()
     {
-       
-        float currentMoveSpeed = moveSpeed;
-
-        if (_isAds) currentMoveSpeed = adsMoveSpeed; 
+        if (_isInCover) return;
+        
+        float currentMoveSpeed = _isAds ? adsMoveSpeed : moveSpeed;
         Vector3 inputDir = new Vector3(_movement.x, 0, _movement.y);
         inputDir = transform.TransformDirection(inputDir);
-        rb.linearVelocity = new Vector3(inputDir.x * moveSpeed, rb.linearVelocity.y, inputDir.z * moveSpeed);
+        
+        rb.linearVelocity = new Vector3(inputDir.x * currentMoveSpeed, rb.linearVelocity.y, inputDir.z * currentMoveSpeed);
+        float moveX = _isLeftShoulder ? -_movement.x : _movement.x;
+        float moveY = _movement.y;
+        
+        animator.SetFloat("MoveX", moveX);
+        animator.SetFloat("MoveY", moveY);
     }
     private void HandleLook()
     {
         _yaw += _lookDelta.x * mouseSensitivity;
         _pitch -= _lookDelta.y * mouseSensitivity;
         _pitch = Mathf.Clamp(_pitch, -pitchClamp, pitchClamp);
-        //_yaw = Mathf.Clamp(_yaw, _baseYaw - yawClamp, _baseYaw + yawClamp);
         transform.rotation = Quaternion.Euler(0, _yaw, 0);
-        if (cameraPivot != null) cameraPivot.localRotation = Quaternion.Euler(_pitch, 0, 0);
+
+        if (cameraPivot != null)
+            cameraPivot.localRotation = Quaternion.Euler(_pitch, 0, 0);
     }
     private void UpdateCamera()
     {
         if (playerCamera != null)
         {
-            Vector3 targetPosition = _isAds ? adsCamLocalPos : (_isLeftShoulder ? leftShoulderPos : rightShoulderPos);
+            Vector3 targetPosition = _isLeftShoulder ? leftShoulderPos : rightShoulderPos;
             playerCamera.transform.localPosition = Vector3.Lerp(playerCamera.transform.localPosition, targetPosition, Time.deltaTime * cameraDamping);
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, _isAds ? adsFOV : defaultFOV, Time.deltaTime * cameraDamping);
         }
@@ -127,6 +141,54 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void SwitchShoulder()
     {
         _isLeftShoulder = !_isLeftShoulder;
+
+        transform.localScale = new Vector3(_isLeftShoulder ? 1 : -1, 1, 1);
+    }
+    private void TakeCover()
+    {
+        if (_isInCover)
+        {
+            ExitCover();
+            return;
+        }
+        Vector3 origin = transform.position + Vector3.up * 0.5f;
+        RaycastHit hit;
+        if (Physics.Raycast(origin, transform.forward, out hit, coverCheckDistance, coverLayer))
+        {
+            Debug.Log("Cover found!");
+            EnterCover(hit.transform);
+        }
+        else
+        {
+            Debug.Log("No cover found.");
+        }
+    }
+    private void EnterCover(Transform cover)
+    {
+        _isInCover = true;
+        _currentCover = cover;
+        Vector3 coverPosition = new Vector3(transform.position.x, transform.position.y, cover.position.z); 
+        transform.position = coverPosition;
+        _coverDirection = (rightCoverPoint.position - leftCoverPoint.position).normalized;
+    }
+    private void HandleCoverMovement()
+    {
+        float sideMove = Input.GetAxis("Horizontal"); 
+        Vector3 moveDirection = _coverDirection; 
+
+        Vector3 newPosition = transform.position + (moveDirection * (sideMove * coverMoveSpeed * Time.deltaTime));
+        float leftBound = Vector3.Dot(newPosition - leftCoverPoint.position, moveDirection);
+        float rightBound = Vector3.Dot(newPosition - rightCoverPoint.position, moveDirection);
+
+        if (leftBound >= 0 && rightBound <= 0)
+        {
+            rb.MovePosition(newPosition);
+        }
+    }
+    private void ExitCover()
+    {
+        _isInCover = false;
+        _currentCover = null;
     }
     public void ApplyRecoil(Vector3 shootDirection)
     {
@@ -137,10 +199,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         _currentHealth -= damage;
         UpdateHealthUI();
+
         if (_currentHealth <= 0)
-        {
             Die();
-        }
     }
     private void UpdateHealthUI()
     {
@@ -150,7 +211,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     public void Heal(int amount)
     {
         _currentHealth = Mathf.Min(_currentHealth + amount, maxHealth);
-        Debug.Log("Health Refilled: " + _currentHealth);
         UpdateHealthUI();
     }
     private void Die()

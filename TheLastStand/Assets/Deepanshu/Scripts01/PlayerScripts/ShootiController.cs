@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 public class ShootiController : MonoBehaviour
-{
-    private Inputs _controls;
+{ 
+   private Inputs _controls;
     private bool _isShooting = false;
     private bool _isReloading = false;
-    private bool _isInCover = false;
+  
     private float _lastShootTime = 0f;
 
     [Header("Shooting References")]
@@ -35,18 +35,27 @@ public class ShootiController : MonoBehaviour
 
     [Header("Recoil Settings")]
     [SerializeField] private float recoilAmount = 2f;
-    [SerializeField] private float recoilRecoverySpeed = 5f; 
-    [SerializeField] private float upwardRecoilRotationAmount = 5f; 
+    [SerializeField] private float recoilRecoverySpeed = 5f;
+    [SerializeField] private float upwardRecoilRotationAmount = 5f;
 
+    [Header("Cover System")]
+    [SerializeField] private bool _isInCover = false; 
+    [SerializeField] private Transform leftCoverPoint;
+    [SerializeField] private Transform rightCoverPoint;
+    [SerializeField] private LayerMask coverLayer;
+
+    private bool _canShoot = true;
     private Quaternion _originalCameraRotation;
     private bool _isRecoiling = false;
-    public bool IsShooting => _isShooting; 
+    
+    public bool IsShooting => _isShooting;
+
     private void Awake()
     {
         _controls = new Inputs();
-        _controls.PlayerMovement.Shoot.started += ctx => Shoot();
+        _controls.PlayerMovement.Shoot.started += ctx => TryShoot();
         _controls.PlayerMovement.Reload.started += ctx => Reload();
-
+       
         InitializeBulletPool();
         _currentAmmo = maxAmmo;
         _carryingAmmo = maxCarryingAmmo;
@@ -66,18 +75,34 @@ public class ShootiController : MonoBehaviour
         }
         UpdateAmmoDisplay();
     }
+    private void TryShoot()
+    {
+        if (!_isInCover || IsTouchingCoverPoint())
+        {
+            Shoot();
+        }
+    }
+    private bool IsTouchingCoverPoint()
+    {
+        return Physics.CheckSphere(leftCoverPoint.position, 0.2f, coverLayer) ||
+               Physics.CheckSphere(rightCoverPoint.position, 0.2f, coverLayer);
+    }
     private void Shoot()
     {
-        if (_isReloading || _isInCover || _currentAmmo <= 0 || Time.time - _lastShootTime < 0.1f) return;
-        _isShooting = true; 
+        if (!_canShoot || _isReloading || _currentAmmo <= 0 || Time.time - _lastShootTime < 0.1f) return;
+
+        _isShooting = true;
         _lastShootTime = Time.time;
+
         Vector3 screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
         Ray camRay = shootCamera.ScreenPointToRay(screenCenter);
         Vector3 targetPoint;
+
         if (Physics.Raycast(camRay, out RaycastHit hit, 100f))
             targetPoint = hit.point;
         else
             targetPoint = camRay.origin + camRay.direction * 100f;
+
         Vector3 shootDir = (targetPoint - shootPoint.position).normalized;
         GameObject bullet = GetBulletFromPool();
         if (bullet != null)
@@ -97,11 +122,13 @@ public class ShootiController : MonoBehaviour
     private void ApplyRecoil()
     {
         if (shootCamera == null) return;
+
         Vector3 recoilOffset = new Vector3(
             Random.Range(-recoilAmount, recoilAmount) * 0.1f,
             Random.Range(-recoilAmount, recoilAmount) * 0.1f,
             0
         );
+
         Quaternion upwardRecoil = Quaternion.Euler(upwardRecoilRotationAmount, 0, 0);
         shootCamera.transform.localRotation *= upwardRecoil;
         shootCamera.transform.localPosition += recoilOffset;
@@ -148,6 +175,10 @@ public class ShootiController : MonoBehaviour
         reloadText.text = "";
         _isReloading = false;
     }
+    public void SetCanShoot(bool canShoot)
+    {
+        _canShoot = canShoot;
+    }
     private void UpdateAmmoDisplay()
     {
         if (ammoText != null)
@@ -158,5 +189,9 @@ public class ShootiController : MonoBehaviour
         int ammoToAdd = Mathf.Min(amount, maxCarryingAmmo - _carryingAmmo);
         _carryingAmmo += ammoToAdd;
         UpdateAmmoDisplay();
+    }
+    public void SetCoverState(bool isInCover)
+    {
+        _isInCover = isInCover;
     }
 }
