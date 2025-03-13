@@ -1,45 +1,42 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
+
 public class ShootiController : MonoBehaviour
 { 
-   private Inputs _controls;
+    private Inputs _controls;
     private bool _isShooting = false;
     private bool _isReloading = false;
-  
     private float _lastShootTime = 0f;
-
     [Header("Shooting References")]
     [SerializeField] internal Camera shootCamera;
     [SerializeField] private Transform shootPoint;
-
     [Header("Shooting Settings")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 20f;
     [SerializeField] private int poolSize = 10;
     private Queue<GameObject> _bulletPool = new Queue<GameObject>();
-
     [Header("Ammo Settings")]
     [SerializeField] private int maxAmmo = 30;
     [SerializeField] private int maxCarryingAmmo = 120;
     private int _currentAmmo;
     private int _carryingAmmo;
-
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI ammoText;
     [SerializeField] private TextMeshProUGUI reloadText;
-
     [Header("Reload Settings")]
     [SerializeField] private float reloadTime = 2f;
-
     [Header("Recoil Settings")]
     [SerializeField] private float recoilAmount = 2f;
     [SerializeField] private float recoilRecoverySpeed = 5f;
     [SerializeField] private float upwardRecoilRotationAmount = 5f;
-
+    [FormerlySerializedAs("_isInCover")]
     [Header("Cover System")]
-    [SerializeField] private bool _isInCover = false; 
+    [SerializeField] private bool isInCover = false; 
     [SerializeField] private Transform leftCoverPoint;
     [SerializeField] private Transform rightCoverPoint;
     [SerializeField] private LayerMask coverLayer;
@@ -47,9 +44,13 @@ public class ShootiController : MonoBehaviour
     private bool _canShoot = true;
     private Quaternion _originalCameraRotation;
     private bool _isRecoiling = false;
-    
+    private Animator _playerAnimator;
     public bool IsShooting => _isShooting;
 
+    private void Start()
+    {
+        _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>(); 
+    }
     private void Awake()
     {
         _controls = new Inputs();
@@ -77,7 +78,7 @@ public class ShootiController : MonoBehaviour
     }
     private void TryShoot()
     {
-        if (!_isInCover || IsTouchingCoverPoint())
+        if (!isInCover || IsTouchingCoverPoint())
         {
             Shoot();
         }
@@ -113,11 +114,18 @@ public class ShootiController : MonoBehaviour
             Rigidbody rb = bullet.GetComponent<Rigidbody>();
             if (rb != null)
                 rb.linearVelocity = shootDir * bulletSpeed;
-
             StartCoroutine(ReturnBulletToPool(bullet, 2f));
         }
         ApplyRecoil();
         _currentAmmo--;
+        _playerAnimator.SetBool("IsShooting", true);
+        StartCoroutine(ResetShootingAnimation());
+    }
+    private IEnumerator ResetShootingAnimation()
+    {
+        yield return new WaitForSeconds(0.1f); 
+        _playerAnimator.SetBool("IsShooting", false);
+        _isShooting = false;
     }
     private void ApplyRecoil()
     {
@@ -161,18 +169,16 @@ public class ShootiController : MonoBehaviour
     private void Reload()
     {
         if (_isReloading || _currentAmmo == maxAmmo || _carryingAmmo == 0) return;
+        _playerAnimator.SetBool("IsReloading", true);
         StartCoroutine(ReloadCoroutine());
     }
     private IEnumerator ReloadCoroutine()
     {
         _isReloading = true;
-        reloadText.text = "Reloading...";
         yield return new WaitForSeconds(reloadTime);
         int ammoToReload = Mathf.Min(maxAmmo - _currentAmmo, _carryingAmmo);
         _currentAmmo += ammoToReload;
         _carryingAmmo -= ammoToReload;
-
-        reloadText.text = "";
         _isReloading = false;
     }
     public void SetCanShoot(bool canShoot)
@@ -192,6 +198,6 @@ public class ShootiController : MonoBehaviour
     }
     public void SetCoverState(bool isInCover)
     {
-        _isInCover = isInCover;
+        this.isInCover = isInCover;
     }
 }

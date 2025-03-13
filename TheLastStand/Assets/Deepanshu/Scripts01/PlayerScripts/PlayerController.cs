@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public enum CameraState
@@ -54,14 +56,27 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField] private float coverMoveSpeed = 2f;
     
     private CapsuleCollider _capsule;
-    public bool _isInCover = false;
-    public Transform _currentCover;
+    [FormerlySerializedAs("_isInCover")] public bool isInCover = false;
+    [FormerlySerializedAs("_currentCover")] public Transform currentCover;
     
     private Vector3 _coverDirection;
     private Transform _closestCoverPoint;
     private bool _isLeftShoulder = true;
 
     [SerializeField] private Animator animator;
+    private float turnDirection;
+    private float turnSmoothTime = 0.1f;
+    private bool isHit = false;
+    private float hitDuration = 0.5f; 
+    private float hitTimer = 0f;
+    [SerializeField] private MultiAimConstraint[] aimConstraints;
+    private float _moveX, _moveY; 
+    private int coverLayerIndex = 3;
+    
+    [SerializeField]
+    private GameObject objectToFlip;
+    [SerializeField]
+    private bool flipOnZAxis = false;
 
     void Start()
     {
@@ -71,6 +86,10 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             playerCamera.transform.localPosition = leftShoulderPos;
             playerCamera.fieldOfView = defaultFOV;
+        }
+        foreach (var constraint in aimConstraints)
+        {
+            constraint.weight = 1f;
         }
     }
     private void Awake()
@@ -95,35 +114,49 @@ public class PlayerController : MonoBehaviour, IDamageable
         HandleMovement();
         HandleLook();
         UpdateCamera();
-        if (_isInCover)
+        if (isInCover)
         {
             HandleCoverMovement();
+        }
+        if (isHit)
+        {
+            hitTimer += Time.deltaTime;
+            if (hitTimer >= hitDuration)
+            {
+                isHit = false;
+                animator.SetBool("IsHit", false); 
+                hitTimer = 0f;
+            }
         }
     }
     private void HandleMovement()
     {
-        if (_isInCover) return;
-        
+        if (isInCover) return;
         float currentMoveSpeed = _isAds ? adsMoveSpeed : moveSpeed;
         Vector3 inputDir = new Vector3(_movement.x, 0, _movement.y);
         inputDir = transform.TransformDirection(inputDir);
-        
         rb.linearVelocity = new Vector3(inputDir.x * currentMoveSpeed, rb.linearVelocity.y, inputDir.z * currentMoveSpeed);
-        float moveX = _isLeftShoulder ? -_movement.x : _movement.x;
-        float moveY = _movement.y;
-        
-        animator.SetFloat("MoveX", moveX);
-        animator.SetFloat("MoveY", moveY);
+        float targetMoveX = _isLeftShoulder ? -_movement.x : _movement.x;
+        float targetMoveY = _movement.y;
+        _moveX = Mathf.Lerp(_moveX, targetMoveX, Time.deltaTime * 10f);
+        _moveY = Mathf.Lerp(_moveY, targetMoveY, Time.deltaTime * 10f);
+        animator.SetFloat("MoveX", _moveX);
+        animator.SetFloat("MoveY", _moveY);
     }
     private void HandleLook()
     {
+        float previousYaw = _yaw;
         _yaw += _lookDelta.x * mouseSensitivity;
         _pitch -= _lookDelta.y * mouseSensitivity;
         _pitch = Mathf.Clamp(_pitch, -pitchClamp, pitchClamp);
         transform.rotation = Quaternion.Euler(0, _yaw, 0);
-
         if (cameraPivot != null)
             cameraPivot.localRotation = Quaternion.Euler(_pitch, 0, 0);
+        float targetTurnDirection = _yaw - previousYaw;
+        bool isTurning = Mathf.Abs(targetTurnDirection) > 0.1f && _movement.magnitude < 0.1f;
+        turnDirection = Mathf.Lerp(turnDirection, targetTurnDirection, Time.deltaTime / turnSmoothTime);
+        animator.SetBool("IsTurning", isTurning);
+        animator.SetFloat("TurnDirection", turnDirection);
     }
     private void UpdateCamera()
     {
@@ -141,12 +174,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void SwitchShoulder()
     {
         _isLeftShoulder = !_isLeftShoulder;
-
         transform.localScale = new Vector3(_isLeftShoulder ? 1 : -1, 1, 1);
     }
     private void TakeCover()
     {
-        if (_isInCover)
+        if (isInCover)
         {
             ExitCover();
             return;
@@ -165,11 +197,27 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
     private void EnterCover(Transform cover)
     {
-        _isInCover = true;
-        _currentCover = cover;
-        Vector3 coverPosition = new Vector3(transform.position.x, transform.position.y, cover.position.z); 
+        isInCover = true;
+        currentCover = cover;
+        
+        Vector3 coverPosition = new Vector3(transform.position.x, transform.position.y, cover.position.z);
+        
         transform.position = coverPosition;
         _coverDirection = (rightCoverPoint.position - leftCoverPoint.position).normalized;
+        
+        animator.SetBool("IsInCover", true);
+        animator.SetFloat("CoverMovement", 0);
+        animator.SetLayerWeight(coverLayerIndex, 1f);
+
+        Debug.Log("Entered Cover: IsInCover = " + animator.GetBool("IsInCover"));
+        
+        foreach (var constraint in aimConstraints)
+        {
+            constraint.weight = 0f;
+        }
+        Debug.Log("Multi-Aim Constraints Disabled");
+        
+        objectToFlip.transform.localRotation = Quaternion.Euler(0, 180, 0);
     }
     private void HandleCoverMovement()
     {
@@ -184,11 +232,24 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             rb.MovePosition(newPosition);
         }
+
+        animator.SetFloat("CoverMovement", sideMove);
     }
     private void ExitCover()
     {
-        _isInCover = false;
-        _currentCover = null;
+        isInCover = false;
+        currentCover = null;
+        animator.SetLayerWeight(coverLayerIndex, 0f);
+        animator.SetBool("IsInCover", false);
+        
+        Debug.Log("Exited Cover: IsInCover = " + animator.GetBool("IsInCover"));
+        
+        foreach (var constraint in aimConstraints)
+        {
+            constraint.weight = 1f;
+        }
+        Debug.Log("Multi-Aim Constraints Enabled");
+        objectToFlip.transform.localRotation = Quaternion.Euler(0, 0, 0);
     }
     public void ApplyRecoil(Vector3 shootDirection)
     {
@@ -198,8 +259,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     public void TakeDamage(int damage)
     {
         _currentHealth -= damage;
+        isHit = true;
+        animator.SetBool("IsHit", true);
         UpdateHealthUI();
-
         if (_currentHealth <= 0)
             Die();
     }
