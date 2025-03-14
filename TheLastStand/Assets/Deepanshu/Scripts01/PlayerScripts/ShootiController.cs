@@ -7,36 +7,48 @@ using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public class ShootiController : MonoBehaviour
-{ 
+{
     private Inputs _controls;
     private bool _isShooting = false;
     private bool _isReloading = false;
     private float _lastShootTime = 0f;
-    [Header("Shooting References")]
-    [SerializeField] internal Camera shootCamera;
+
+    [Header("Shooting References")] [SerializeField]
+    internal Camera shootCamera;
+
     [SerializeField] private Transform shootPoint;
-    [Header("Shooting Settings")]
-    [SerializeField] private GameObject bulletPrefab;
+
+    [Header("Shooting Settings")] [SerializeField]
+    private GameObject bulletPrefab;
+
     [SerializeField] private float bulletSpeed = 20f;
     [SerializeField] private int poolSize = 10;
     private Queue<GameObject> _bulletPool = new Queue<GameObject>();
-    [Header("Ammo Settings")]
-    [SerializeField] private int maxAmmo = 30;
+
+    [Header("Ammo Settings")] [SerializeField]
+    private int maxAmmo = 30;
+
     [SerializeField] private int maxCarryingAmmo = 120;
     private int _currentAmmo;
     private int _carryingAmmo;
-    [Header("UI References")]
-    [SerializeField] private TextMeshProUGUI ammoText;
+
+    [Header("UI References")] [SerializeField]
+    private TextMeshProUGUI ammoText;
+
     [SerializeField] private TextMeshProUGUI reloadText;
-    [Header("Reload Settings")]
-    [SerializeField] private float reloadTime = 2f;
-    [Header("Recoil Settings")]
-    [SerializeField] private float recoilAmount = 2f;
+
+    [Header("Reload Settings")] [SerializeField]
+    private float reloadTime = 2f;
+
+    [Header("Recoil Settings")] [SerializeField]
+    private float recoilAmount = 2f;
+
     [SerializeField] private float recoilRecoverySpeed = 5f;
     [SerializeField] private float upwardRecoilRotationAmount = 5f;
-    [FormerlySerializedAs("_isInCover")]
-    [Header("Cover System")]
-    [SerializeField] private bool isInCover = false; 
+
+    [FormerlySerializedAs("_isInCover")] [Header("Cover System")] [SerializeField]
+    private bool isInCover = false;
+
     [SerializeField] private Transform leftCoverPoint;
     [SerializeField] private Transform rightCoverPoint;
     [SerializeField] private LayerMask coverLayer;
@@ -46,17 +58,16 @@ public class ShootiController : MonoBehaviour
     private bool _isRecoiling = false;
     private Animator _playerAnimator;
     public bool IsShooting => _isShooting;
-
     private void Start()
     {
-        _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>(); 
+        _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>();
     }
     private void Awake()
     {
         _controls = new Inputs();
         _controls.PlayerMovement.Shoot.started += ctx => TryShoot();
         _controls.PlayerMovement.Reload.started += ctx => Reload();
-       
+
         InitializeBulletPool();
         _currentAmmo = maxAmmo;
         _carryingAmmo = maxCarryingAmmo;
@@ -72,8 +83,10 @@ public class ShootiController : MonoBehaviour
     {
         if (_isRecoiling)
         {
-            shootCamera.transform.localRotation = Quaternion.Lerp(shootCamera.transform.localRotation, _originalCameraRotation, Time.deltaTime * recoilRecoverySpeed);
+            shootCamera.transform.localRotation = Quaternion.Lerp(shootCamera.transform.localRotation,
+                _originalCameraRotation, Time.deltaTime * recoilRecoverySpeed);
         }
+
         UpdateAmmoDisplay();
     }
     private void TryShoot()
@@ -123,7 +136,7 @@ public class ShootiController : MonoBehaviour
     }
     private IEnumerator ResetShootingAnimation()
     {
-        yield return new WaitForSeconds(0.1f); 
+        yield return new WaitForSeconds(0.1f);
         _playerAnimator.SetBool("IsShooting", false);
         _isShooting = false;
     }
@@ -136,7 +149,6 @@ public class ShootiController : MonoBehaviour
             Random.Range(-recoilAmount, recoilAmount) * 0.1f,
             0
         );
-
         Quaternion upwardRecoil = Quaternion.Euler(upwardRecoilRotationAmount, 0, 0);
         shootCamera.transform.localRotation *= upwardRecoil;
         shootCamera.transform.localPosition += recoilOffset;
