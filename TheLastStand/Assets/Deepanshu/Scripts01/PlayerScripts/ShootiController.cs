@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 public class ShootiController : MonoBehaviour
 {
-    private Inputs _controls;
+     private Inputs _controls;
     private bool _isShooting = false;
     private bool _isReloading = false;
     private float _lastShootTime = 0f;
@@ -46,7 +46,7 @@ public class ShootiController : MonoBehaviour
     [SerializeField] private float recoilRecoverySpeed = 5f;
     [SerializeField] private float upwardRecoilRotationAmount = 5f;
 
-    [FormerlySerializedAs("_isInCover")] [Header("Cover System")] [SerializeField]
+    [Header("Cover System")] [SerializeField]
     private bool isInCover = false;
 
     [SerializeField] private Transform leftCoverPoint;
@@ -58,9 +58,13 @@ public class ShootiController : MonoBehaviour
     private bool _isRecoiling = false;
     private Animator _playerAnimator;
     public bool IsShooting => _isShooting;
+
+    private PlayerController _playerController;
+
     private void Start()
     {
         _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>();
+        _playerController = GetComponent<PlayerController>();
     }
     private void Awake()
     {
@@ -79,6 +83,7 @@ public class ShootiController : MonoBehaviour
     }
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
+
     private void Update()
     {
         if (_isRecoiling)
@@ -89,18 +94,26 @@ public class ShootiController : MonoBehaviour
 
         UpdateAmmoDisplay();
     }
+
     private void TryShoot()
     {
+        if (_playerController._coverState == CoverState.InCover)
+        {
+            return;
+        }
+
         if (!isInCover || IsTouchingCoverPoint())
         {
             Shoot();
         }
     }
+
     private bool IsTouchingCoverPoint()
     {
         return Physics.CheckSphere(leftCoverPoint.position, 0.2f, coverLayer) ||
                Physics.CheckSphere(rightCoverPoint.position, 0.2f, coverLayer);
     }
+
     private void Shoot()
     {
         if (!_canShoot || _isReloading || _currentAmmo <= 0 || Time.time - _lastShootTime < 0.1f) return;
@@ -134,12 +147,14 @@ public class ShootiController : MonoBehaviour
         _playerAnimator.SetBool("IsShooting", true);
         StartCoroutine(ResetShootingAnimation());
     }
+
     private IEnumerator ResetShootingAnimation()
     {
         yield return new WaitForSeconds(0.1f);
         _playerAnimator.SetBool("IsShooting", false);
         _isShooting = false;
     }
+
     private void ApplyRecoil()
     {
         if (shootCamera == null) return;
@@ -154,6 +169,7 @@ public class ShootiController : MonoBehaviour
         shootCamera.transform.localPosition += recoilOffset;
         _isRecoiling = true;
     }
+
     private void InitializeBulletPool()
     {
         for (int i = 0; i < poolSize; i++)
@@ -163,6 +179,7 @@ public class ShootiController : MonoBehaviour
             _bulletPool.Enqueue(bullet);
         }
     }
+
     private GameObject GetBulletFromPool()
     {
         if (_bulletPool.Count > 0)
@@ -172,18 +189,21 @@ public class ShootiController : MonoBehaviour
         }
         return Instantiate(bulletPrefab);
     }
+
     private IEnumerator ReturnBulletToPool(GameObject bullet, float delay)
     {
         yield return new WaitForSeconds(delay);
         bullet.SetActive(false);
         _bulletPool.Enqueue(bullet);
     }
+
     private void Reload()
     {
         if (_isReloading || _currentAmmo == maxAmmo || _carryingAmmo == 0) return;
         _playerAnimator.SetBool("IsReloading", true);
         StartCoroutine(ReloadCoroutine());
     }
+
     private IEnumerator ReloadCoroutine()
     {
         _isReloading = true;
@@ -193,21 +213,25 @@ public class ShootiController : MonoBehaviour
         _carryingAmmo -= ammoToReload;
         _isReloading = false;
     }
+
     public void SetCanShoot(bool canShoot)
     {
         _canShoot = canShoot;
     }
+
     private void UpdateAmmoDisplay()
     {
         if (ammoText != null)
             ammoText.text = $"{_currentAmmo}/{_carryingAmmo}";
     }
+
     public void RefillMaxAmmo(int amount)
     {
         int ammoToAdd = Mathf.Min(amount, maxCarryingAmmo - _carryingAmmo);
         _carryingAmmo += ammoToAdd;
         UpdateAmmoDisplay();
     }
+
     public void SetCoverState(bool isInCover)
     {
         this.isInCover = isInCover;
