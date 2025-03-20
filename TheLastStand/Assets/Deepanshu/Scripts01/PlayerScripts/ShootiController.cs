@@ -5,58 +5,78 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
-
+using UnityEngine.UI;
 public class ShootiController : MonoBehaviour
 {
-     private Inputs _controls;
+    private Inputs _controls;
     private bool _isShooting = false;
     private bool _isReloading = false;
     private float _lastShootTime = 0f;
 
-    [Header("Shooting References")] [SerializeField]
+    [Header("Shooting References")]
+    [SerializeField]
     internal Camera shootCamera;
 
     [SerializeField] private Transform shootPoint;
 
-    [Header("Shooting Settings")] [SerializeField]
+    [Header("Shooting Settings")]
+    [SerializeField]
     private GameObject bulletPrefab;
 
     [SerializeField] private float bulletSpeed = 20f;
     [SerializeField] private int poolSize = 10;
     private Queue<GameObject> _bulletPool = new Queue<GameObject>();
 
-    [Header("Ammo Settings")] [SerializeField]
+    [Header("Ammo Settings")]
+    [SerializeField]
     private int maxAmmo = 30;
 
     [SerializeField] private int maxCarryingAmmo = 120;
     private int _currentAmmo;
     private int _carryingAmmo;
 
-    [Header("UI References")] [SerializeField]
+    [Header("UI References")]
+    [SerializeField]
     private TextMeshProUGUI ammoText;
 
     [SerializeField] private TextMeshProUGUI reloadText;
 
-    [Header("Reload Settings")] [SerializeField]
+    [Header("Reload Settings")]
+    [SerializeField]
     private float reloadTime = 2f;
 
-    [Header("Recoil Settings")] [SerializeField]
+    [Header("Recoil Settings")]
+    [SerializeField]
     private float recoilAmount = 2f;
 
     [SerializeField] private float recoilRecoverySpeed = 5f;
     [SerializeField] private float upwardRecoilRotationAmount = 5f;
 
-    [Header("Cover System")] [SerializeField]
+    [FormerlySerializedAs("_isInCover")]
+    [Header("Cover System")]
+    [SerializeField]
     private bool isInCover = false;
 
     [SerializeField] private Transform leftCoverPoint;
     [SerializeField] private Transform rightCoverPoint;
     [SerializeField] private LayerMask coverLayer;
+    [SerializeField] private Transform coverShootTargetObject;
+
+    [Header("Target Objects")]
+    [SerializeField] private Transform shootTargetObject;
+
+    // References to the cameras
+    [Header("Camera References")]
+    [SerializeField]
+    public Camera playerCamera;
+    [SerializeField] public Camera coverCamera;
 
     private bool _canShoot = true;
     private Quaternion _originalCameraRotation;
     private bool _isRecoiling = false;
     private Animator _playerAnimator;
+    [SerializeField] private Image crosshairImage;
+
     public bool IsShooting => _isShooting;
 
     private PlayerController _playerController;
@@ -65,7 +85,9 @@ public class ShootiController : MonoBehaviour
     {
         _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>();
         _playerController = GetComponent<PlayerController>();
+        LockCursorToCenter();
     }
+
     private void Awake()
     {
         _controls = new Inputs();
@@ -81,6 +103,7 @@ public class ShootiController : MonoBehaviour
             _originalCameraRotation = shootCamera.transform.localRotation;
         }
     }
+
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
 
@@ -93,53 +116,73 @@ public class ShootiController : MonoBehaviour
         }
 
         UpdateAmmoDisplay();
+        if (Cursor.lockState != CursorLockMode.Locked)
+        {
+            LockCursorToCenter();
+        }
+    }
+
+    private void LockCursorToCenter()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void TryShoot()
     {
-        if (_playerController._coverState == CoverState.InCover)
+        if (_playerController._coverState == CoverState.InCoverColliding)
         {
-            return;
+            Debug.Log("CoverShoot called");
+            CoverShoot();
         }
-
-        if (!isInCover || IsTouchingCoverPoint())
+        else if (_playerController._coverState == CoverState.NotInCover)
         {
+            Debug.Log("Shoot called");
             Shoot();
         }
     }
 
-    private bool IsTouchingCoverPoint()
+    private void CoverShoot()
     {
-        return Physics.CheckSphere(leftCoverPoint.position, 0.2f, coverLayer) ||
-               Physics.CheckSphere(rightCoverPoint.position, 0.2f, coverLayer);
+        if (_playerController._coverState != CoverState.InCoverColliding) return;
+
+        Vector3 shootDir = coverCamera.transform.forward;
+        Debug.DrawRay(shootPoint.position, shootDir * 100f, Color.green, 2f);
+        Debug.Log("Cover Shooting - Direction: " + shootDir + ", From: " + shootPoint.position);
+
+        HandleShootingLogic(shootDir, shootPoint.position);
     }
 
     private void Shoot()
+    {
+        if (_playerController._coverState != CoverState.NotInCover) return;
+
+        Vector3 shootDir = playerCamera.transform.forward;
+        Debug.DrawRay(shootPoint.position, shootDir * 100f, Color.red, 2f);
+        Debug.Log("Normal Shooting - Direction: " + shootDir + ", From: " + shootPoint.position);
+
+        HandleShootingLogic(shootDir, shootPoint.position);
+    }
+
+    private void HandleShootingLogic(Vector3 shootDir, Vector3 shootPosition)
     {
         if (!_canShoot || _isReloading || _currentAmmo <= 0 || Time.time - _lastShootTime < 0.1f) return;
 
         _isShooting = true;
         _lastShootTime = Time.time;
-
-        Vector3 screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
-        Ray camRay = shootCamera.ScreenPointToRay(screenCenter);
-        Vector3 targetPoint;
-
-        if (Physics.Raycast(camRay, out RaycastHit hit, 100f))
-            targetPoint = hit.point;
-        else
-            targetPoint = camRay.origin + camRay.direction * 100f;
-
-        Vector3 shootDir = (targetPoint - shootPoint.position).normalized;
         GameObject bullet = GetBulletFromPool();
         if (bullet != null)
         {
-            bullet.transform.position = shootPoint.position;
+            bullet.transform.position = shootPosition;
             bullet.transform.rotation = Quaternion.LookRotation(shootDir);
             bullet.SetActive(true);
+
             Rigidbody rb = bullet.GetComponent<Rigidbody>();
             if (rb != null)
+            {
                 rb.linearVelocity = shootDir * bulletSpeed;
+            }
+
             StartCoroutine(ReturnBulletToPool(bullet, 2f));
         }
         ApplyRecoil();
@@ -235,5 +278,26 @@ public class ShootiController : MonoBehaviour
     public void SetCoverState(bool isInCover)
     {
         this.isInCover = isInCover;
+    }
+
+    private bool IsTouchingCoverPoint()
+    {
+        return Physics.CheckSphere(leftCoverPoint.position, 0.2f, coverLayer) ||
+               Physics.CheckSphere(rightCoverPoint.position, 0.2f, coverLayer);
+    }
+
+    private Vector3 GetTargetPointFromCamera()
+    {
+        Vector3 screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
+        Ray camRay = shootCamera.ScreenPointToRay(screenCenter);
+
+        if (Physics.Raycast(camRay, out RaycastHit hit, 100f))
+        {
+            return hit.point;
+        }
+        else
+        {
+            return camRay.origin + camRay.direction * 100f;
+        }
     }
 }
