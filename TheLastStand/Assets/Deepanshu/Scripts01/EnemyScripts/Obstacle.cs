@@ -3,7 +3,7 @@ using UnityEngine;
 public class Obstacle : MonoBehaviour,IObstacle
 {
     [Header("Bullet Hit Settings")]
-    [SerializeField] private int maxHits = 3; 
+    [SerializeField] private int maxHits = 3;
     [SerializeField] private float cooldownTime = 5f;
 
     [Header("Visual Feedback")]

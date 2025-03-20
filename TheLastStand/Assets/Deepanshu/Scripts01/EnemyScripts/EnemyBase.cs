@@ -5,27 +5,36 @@ using UnityEngine.UI;
 
 public class EnemyBase : MonoBehaviour, IInteractable
 {
-    [SerializeField] public NavMeshAgent agent;
+     [SerializeField] public NavMeshAgent agent;
     private Transform _player;
     public Transform firePoint;
+    public GameObject bulletPrefab; // Reference to the bullet prefab
+
     [Header("Enemy Settings")]
     public float enemyRange = 10f;
     public float fireRate = 1f;
     public float bulletSpeed = 10f;
     public int bulletsPerRound = 3;
     public float randomMoveRadius = 10f;
+
     private bool _isBeingTargeted = false;
     private EnemyStateMachine _stateMachine;
+    private bool _isShooting = false;
+
     [SerializeField] private int maxHealth = 100;
     private int _currentHealth;
+
     [SerializeField] private GameObject[] dropPrefabs;
     [SerializeField] private Transform dropSpawnPoint;
     private bool _isDead = false;
+
     [Header("Health UI")]
     [SerializeField] private Slider healthBar;
     [SerializeField] private Canvas healthCanvas;
+
     private Camera _playerCamera;
     private ShootiController _shootiController;
+
     public void SetPlayer(Transform playerTransform)
     {
         _player = playerTransform;
@@ -42,10 +51,12 @@ public class EnemyBase : MonoBehaviour, IInteractable
         _currentHealth = maxHealth;
         InitializeHealthBar();
         UpdateHealthUI();
+
         if (WaveManager.Instance != null)
         {
             _playerCamera = WaveManager.Instance.GetPlayerCamera();
         }
+
         if (healthCanvas != null)
             healthCanvas.gameObject.SetActive(false);
     }
@@ -57,7 +68,7 @@ public class EnemyBase : MonoBehaviour, IInteractable
             RotateTowardsPlayer();
         }
         CheckPlayerAim();
-        RotateHealthBar(); 
+        RotateHealthBar();
     }
     public void RotateTowardsPlayer()
     {
@@ -83,25 +94,30 @@ public class EnemyBase : MonoBehaviour, IInteractable
     }
     public void Shoot()
     {
+        if (_isShooting || firePoint == null || bulletPrefab == null) return;
+        _isShooting = true;
         StartCoroutine(ShootingCoroutine());
     }
     IEnumerator ShootingCoroutine()
     {
         for (int i = 0; i < bulletsPerRound; i++)
         {
-            GameObject bullet = BulletPool.Instance.GetBullet();
-            bullet.transform.position = firePoint.position;
-            bullet.transform.rotation = firePoint.rotation;
+            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.LookRotation(_player.position - firePoint.position));
             EnemyBullet bulletScript = bullet.GetComponent<EnemyBullet>();
             if (bulletScript != null)
             {
                 bulletScript.SetSpeed(bulletSpeed);
             }
-            yield return new WaitForSeconds(fireRate);
+
+            Debug.Log($"Shooting bullet from {firePoint.position} towards {_player.position}");
+
+            yield return new WaitForSeconds(fireRate / bulletsPerRound);
         }
+        _isShooting = false;
     }
     public void TakeDamage(int damage)
-    {if (healthCanvas != null)
+    {
+        if (healthCanvas != null)
             healthCanvas.gameObject.SetActive(true);
         if (_isDead) return;
         _currentHealth -= damage;

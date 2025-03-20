@@ -107,9 +107,13 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField] private Transform playerTarget;
 
     public CoverState _coverState = CoverState.NotInCover;
+    
+    [SerializeField]
+    private Transform target;
 
-    private bool isTakingCover = false;
-    private bool isExitingCover = false;
+    [SerializeField]
+    private Transform target1;
+
 
     void Start()
     {
@@ -121,7 +125,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             playerCamera.transform.localPosition = leftShoulderPos;
             playerCamera.fieldOfView = defaultFOV;
         }
-       
+
         if (coverCamera != null)
         {
             coverCamera.gameObject.SetActive(false);
@@ -130,7 +134,6 @@ public class PlayerController : MonoBehaviour, IDamageable
         _shootiController.playerCamera = playerCamera;
         _shootiController.coverCamera = coverCamera;
     }
-
     private void Awake()
     {
         _controls = new Inputs();
@@ -159,10 +162,15 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             HandleCoverMovement();
             UpdateCoverCamera();
-
-            if (Input.GetKeyDown(KeyCode.Mouse1)) // Cover shoulder button
+            if (Input.GetKeyDown(KeyCode.Mouse1)) 
             {
                 CoverShoulderSwitch();
+            }
+            if (_coverState == CoverState.InCoverColliding)
+            {
+                bool isMoving = _movement.magnitude > 0.1f;
+                animator.SetBool("isInCoverColliding", !isMoving);
+                animator.SetBool("IsInCover", isMoving);
             }
         }
         if (isHit)
@@ -179,7 +187,6 @@ public class PlayerController : MonoBehaviour, IDamageable
         UpdateObjectToFlipRotation();
         UpdateAimConstraints();
     }
-
     private void HandleMovement()
     {
         if (isInCover) return;
@@ -194,7 +201,6 @@ public class PlayerController : MonoBehaviour, IDamageable
         animator.SetFloat("MoveX", _moveX);
         animator.SetFloat("MoveY", _moveY);
     }
-
     private void HandleLook()
     {
         float pitchClamp = isInCover ? coverPitchClamp : playerPitchClamp;
@@ -223,7 +229,6 @@ public class PlayerController : MonoBehaviour, IDamageable
             animator.SetFloat("TurnDirection", turnDirection);
         }
     }
-
     private void UpdateCamera()
     {
         if (playerCamera != null && !isInCover)
@@ -234,7 +239,6 @@ public class PlayerController : MonoBehaviour, IDamageable
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, targetFOV, Time.deltaTime * cameraDamping);
         }
     }
-
     private void UpdateCoverCamera()
     {
         if (coverCamera != null && playerTarget != null && isInCover)
@@ -250,7 +254,6 @@ public class PlayerController : MonoBehaviour, IDamageable
             coverCamera.fieldOfView = Mathf.Lerp(coverCamera.fieldOfView, targetFOV, Time.deltaTime * cameraDamping);
         }
     }
-
     private void ToggleAds(bool isActive)
     {
         if (isInCover && _coverState != CoverState.InCoverColliding)
@@ -260,14 +263,12 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         _isAds = isActive;
     }
-
     private void SwitchShoulder()
     {
         _isLeftShoulder = !_isLeftShoulder;
         Vector3 targetPosition = _isLeftShoulder ? leftShoulderPos : rightShoulderPos;
         playerCamera.transform.localPosition = new Vector3(targetPosition.x, playerCamera.transform.localPosition.y, playerCamera.transform.localPosition.z);
     }
-
     private void CoverShoulderSwitch()
     {
         _isLeftShoulder = !_isLeftShoulder;
@@ -278,92 +279,52 @@ public class PlayerController : MonoBehaviour, IDamageable
         Vector3 perpendicularDirection = Vector3.Cross(_coverDirection, Vector3.up);
         transform.rotation = Quaternion.LookRotation(perpendicularDirection);
     }
-
     private void TakeCover()
     {
         if (isInCover)
         {
-            StartCoroutine(ExitCoverRoutine());
+            ExitCover();
             return;
         }
-        StartCoroutine(TakeCoverRoutine());
-    }
-
-    private IEnumerator TakeCoverRoutine()
-    {
-        if (isTakingCover || isExitingCover) yield break;
-        isTakingCover = true;
-
         Vector3 origin = transform.position + Vector3.up * 0.5f;
         RaycastHit hit;
         if (Physics.Raycast(origin, transform.forward, out hit, coverCheckDistance, coverLayer))
         {
             Debug.Log("Cover found!");
-            // Set the IsTakingCover boolean to true
             animator.SetBool("IsTakingCover", true);
-
-            yield return new WaitForSeconds(1.0f); 
 
             EnterCover(hit.point);
         }
         else
         {
             Debug.Log("No cover found.");
-            isTakingCover = false;
-            yield break;
         }
-
-        isTakingCover = false;
         animator.SetBool("IsTakingCover", false);
     }
-
-    private IEnumerator ExitCoverRoutine()
-    {
-        if (isExitingCover || isTakingCover) yield break;
-        isExitingCover = true;
-
-        animator.SetBool("IsTakingCover", true);
-
-        // Wait for the animation to complete
-        yield return new WaitForSeconds(1.0f); // Adjust the time based on your animation length
-
-        ExitCover();
-        isExitingCover = false;
-        animator.SetBool("IsTakingCover", false);
-    }
-
     private void EnterCover(Vector3 coverPosition)
     {
         isInCover = true;
         currentCover = null;
-
-        // Stop any existing momentum
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        // Position the player at the cover point
         transform.position = coverPosition;
 
-        // Calculate the cover direction and align the player
         _coverDirection = (rightCoverPoint.position - leftCoverPoint.position).normalized;
         Vector3 perpendicularDirection = Vector3.Cross(_coverDirection, Vector3.up);
         transform.rotation = Quaternion.LookRotation(perpendicularDirection);
 
-        // Update animator parameters
         animator.SetBool("IsInCover", true);
         animator.SetFloat("CoverMovement", 0);
         animator.SetLayerWeight(coverLayerIndex, 1f);
 
-        // Disable regular aim constraints and enable cover aim constraints if needed
         foreach (var constraint in aimConstraints)
         {
             constraint.weight = 0f;
         }
 
-        // Update the object to flip rotation if necessary
         UpdateObjectToFlipRotation();
 
-        // Activate the cover camera and deactivate the player camera
         if (coverCamera != null)
         {
             coverCamera.gameObject.SetActive(true);
@@ -373,12 +334,11 @@ public class PlayerController : MonoBehaviour, IDamageable
             playerCamera.gameObject.SetActive(false);
         }
 
-        // Ensure the player's scale is consistent
         transform.localScale = Vector3.one;
     }
     private void HandleCoverMovement()
     {
-        float sideMove = Input.GetAxis("Horizontal"); // Cover movement input
+        float sideMove = Input.GetAxis("Horizontal"); 
         Vector3 moveDirection = _coverDirection;
 
         Vector3 newPosition = transform.position + (moveDirection * (sideMove * coverMoveSpeed * Time.deltaTime));
@@ -433,23 +393,15 @@ public class PlayerController : MonoBehaviour, IDamageable
         if (healthText != null)
             healthText.text = $"Player Health: {_currentHealth}";
     }
-
     public void Heal(int amount)
     {
         _currentHealth = Mathf.Min(_currentHealth + amount, maxHealth);
         UpdateHealthUI();
     }
-
     private void Die()
     {
         Debug.Log("Player Died!");
     }
-    [SerializeField]
-    private Transform target; 
-
-    [SerializeField]
-    private Transform target1;
-
     private void UpdateAimConstraints()
     {
         switch (_coverState)
@@ -458,64 +410,53 @@ public class PlayerController : MonoBehaviour, IDamageable
                 foreach (var constraint in aimConstraints)
                 {
                     constraint.weight = 1f;
-                    Debug.Log("NotInCover: aimConstraints weight set to 1");
                 }
-
                 foreach (var constraint in coverAimConstraints)
                 {
                     constraint.weight = 0f;
-                    Debug.Log("NotInCover: coverAimConstraints weight set to 0");
+                   
                 }
-
-                animator.SetBool("isInCoverColliding", false); // Ensure the animation is not playing
+                animator.SetBool("isInCoverColliding", false); 
                 break;
 
             case CoverState.InCover:
                 foreach (var constraint in aimConstraints)
                 {
                     constraint.weight = 0f;
-                    Debug.Log("InCover: aimConstraints weight set to 0");
                 }
-
                 foreach (var constraint in coverAimConstraints)
                 {
                     constraint.weight = 0f;
-                    Debug.Log("InCover: coverAimConstraints weight set to 0");
                 }
-
-                animator.SetBool("isInCoverColliding", false); // Ensure the animation is not playing
+                animator.SetBool("isInCoverColliding", false);
                 break;
 
             case CoverState.InCoverColliding:
                 foreach (var constraint in aimConstraints)
                 {
                     constraint.weight = 0f;
-                    Debug.Log("InCoverColliding: aimConstraints weight set to 0");
+                    
                 }
-
                 foreach (var constraint in coverAimConstraints)
                 {
                     constraint.weight = 1f;
-                    Debug.Log("InCoverColliding: coverAimConstraints weight set to 1");
                 }
-
-                animator.SetBool("isInCoverColliding", true); // Trigger the animation
+                animator.SetBool("isInCoverColliding", true);
                 break;
         }
     }
-
     private void UpdateObjectToFlipRotation()
+    {
+        if (isInCover && !Physics.CheckSphere(transform.position, 0.5f, LayerMask.GetMask("CoverCorner")))
         {
-            if (isInCover && !Physics.CheckSphere(transform.position, 0.5f, LayerMask.GetMask("CoverCorner")))
-            {
-                _coverState = CoverState.InCover;
-                objectToFlip.transform.localRotation = Quaternion.Euler(0, 180, 0);
-            }
-            else
-            {
-                _coverState = isInCover ? CoverState.InCoverColliding : CoverState.NotInCover;
-                objectToFlip.transform.localRotation = Quaternion.Euler(0, 0, 0);
-            }
+            _coverState = CoverState.InCover;
+            objectToFlip.transform.localRotation = Quaternion.Euler(0, 180, 0);
         }
+        else
+        {
+            _coverState = isInCover ? CoverState.InCoverColliding : CoverState.NotInCover;
+            objectToFlip.transform.localRotation = Quaternion.Euler(0, 0, 0);
+        }
+    }
 }
 

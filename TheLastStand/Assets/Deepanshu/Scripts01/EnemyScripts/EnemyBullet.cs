@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
@@ -18,8 +19,8 @@ public class EnemyBullet : MonoBehaviour
     public void SetSpeed(float newSpeed)
     {
         _speed = newSpeed;
-        _rb.linearVelocity = transform.forward * _speed; 
-        Invoke(nameof(ReturnToPool), _lifetime);
+        _rb.linearVelocity = transform.forward * _speed;
+        Invoke(nameof(DestroyBullet), _lifetime);
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -27,7 +28,7 @@ public class EnemyBullet : MonoBehaviour
         if (damageable != null)
         {
             damageable.TakeDamage(damage);
-            ReturnToPool();
+            DestroyBullet();
             return;
         }
 
@@ -39,13 +40,11 @@ public class EnemyBullet : MonoBehaviour
             {
                 specificObstacle.OnBulletHit();
             }
-            ReturnToPool();
+            DestroyBullet();
         }
     }
-    private void ReturnToPool()
+    private void DestroyBullet()
     {
-        _rb.linearVelocity = Vector3.zero;
-        gameObject.SetActive(false);
-        BulletPool.Instance.ReturnBullet(gameObject);
+        Destroy(gameObject);
     }
 }

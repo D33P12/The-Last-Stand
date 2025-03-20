@@ -10,19 +10,19 @@ public class WaveManager : MonoBehaviour
     [Header("Wave Settings")]
     [SerializeField] private GameObject enemyPrefab;
     [SerializeField] private Transform[] spawnPoints;
-
-    [SerializeField] private int totalEnemiesToSpawn = 10; 
-    [SerializeField] private int maxEnemiesInScene = 5;  
+    [SerializeField] private int totalEnemiesToSpawn = 10;
+    [SerializeField] private int maxEnemiesInScene = 5;
 
     private int _totalEnemiesSpawned = 0;
     private int _currentAliveEnemies = 0;
 
     [Header("UI Elements")]
-    [SerializeField] private TextMeshProUGUI enemyCounterText; 
+    [SerializeField] private TextMeshProUGUI enemyCounterText;
 
     [Header("Player Reference")]
     [SerializeField] private Transform player;
-    [SerializeField] private Camera playerCamera; 
+    [SerializeField] private Camera playerCamera;
+    
     private void Awake()
     {
         if (Instance == null)
@@ -48,11 +48,11 @@ public class WaveManager : MonoBehaviour
 
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
         GameObject newEnemy = Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
-        
+
         EnemyBase enemyScript = newEnemy.GetComponent<EnemyBase>();
         if (enemyScript != null)
         {
-            enemyScript.SetPlayer(player); 
+            enemyScript.SetPlayer(player);
             enemyScript.SetCamera(playerCamera);
         }
 
