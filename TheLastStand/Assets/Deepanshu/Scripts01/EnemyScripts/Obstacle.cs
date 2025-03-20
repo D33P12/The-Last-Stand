@@ -10,7 +10,7 @@ public class Obstacle : MonoBehaviour,IObstacle
     [SerializeField] private Renderer obstacleRenderer;
     [SerializeField] private Color activeColor = Color.white;
     [SerializeField] private Color disabledColor = Color.red;
-
+    
     private int _currentHits = 0;
     private Collider _obstacleCollider;
 

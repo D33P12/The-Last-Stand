@@ -1505,7 +1505,7 @@ GameObject:
   - component: {fileID: 1120208992}
   - component: {fileID: 1120208991}
   - component: {fileID: 1120208990}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: r
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2156,7 +2156,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8ab8fea659cc1f42a7894487a5b20d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHits: 6
+  maxHits: 65
   cooldownTime: 5
   obstacleRenderer: {fileID: 1359008080}
   activeColor: {r: 1, g: 1, b: 1, a: 1}
@@ -2747,8 +2747,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c10b9c26f68bc14ba602c32d75e8df5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bulletPrefab: {fileID: 1691481031142834422, guid: 06941cd8e721be942891e09e209b3f9a, type: 3}
-  poolSize: 1500
 --- !u!1 &1562461806
 GameObject:
   m_ObjectHideFlags: 0

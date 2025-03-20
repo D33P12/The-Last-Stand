@@ -113,7 +113,11 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     [SerializeField]
     private Transform target1;
-
+    
+    [SerializeField]
+    private Vector3 lastCoverPosition;
+    
+    public CoverState CoverState { get; private set; }
 
     void Start()
     {
@@ -317,6 +321,11 @@ public class PlayerController : MonoBehaviour, IDamageable
         animator.SetBool("IsInCover", true);
         animator.SetFloat("CoverMovement", 0);
         animator.SetLayerWeight(coverLayerIndex, 1f);
+        
+        lastCoverPosition = coverPosition;
+        CoverState = CoverState.InCover;
+        NotifyEnemiesOfCoverState();
+        
 
         foreach (var constraint in aimConstraints)
         {
@@ -363,6 +372,10 @@ public class PlayerController : MonoBehaviour, IDamageable
             constraint.weight = 1f;
         }
         Debug.Log("Multi-Aim Constraints Enabled");
+        
+        lastCoverPosition = Vector3.zero;
+        CoverState = CoverState.NotInCover;
+        
         UpdateObjectToFlipRotation();
         if (coverCamera != null)
         {
@@ -373,6 +386,15 @@ public class PlayerController : MonoBehaviour, IDamageable
             playerCamera.gameObject.SetActive(true);
         }
         transform.localScale = Vector3.one;
+        NotifyEnemiesOfCoverState();
+    }
+    private void NotifyEnemiesOfCoverState()
+    {
+        EnemyBase[] enemies = FindObjectsOfType<EnemyBase>();
+        foreach (var enemy in enemies)
+        {
+            enemy.SetPlayerCoverState(CoverState, lastCoverPosition);
+        }
     }
     public void ApplyRecoil(Vector3 shootDirection)
     {

@@ -8,7 +8,7 @@ public class EnemyBase : MonoBehaviour, IInteractable
      [SerializeField] public NavMeshAgent agent;
     private Transform _player;
     public Transform firePoint;
-    public GameObject bulletPrefab; // Reference to the bullet prefab
+    public GameObject bulletPrefab;
 
     [Header("Enemy Settings")]
     public float enemyRange = 10f;
@@ -34,6 +34,17 @@ public class EnemyBase : MonoBehaviour, IInteractable
 
     private Camera _playerCamera;
     private ShootiController _shootiController;
+    
+    [SerializeField]
+    private float grenadeThrowInterval = 5f; 
+    [SerializeField]
+    private GameObject grenadePrefab;
+    [SerializeField]
+    private Transform grenadeShootPoint;
+
+    private float grenadeTimer = 0f;
+    private Vector3 playerLastCoverPosition;
+    private CoverState playerCoverState;
 
     public void SetPlayer(Transform playerTransform)
     {
@@ -69,6 +80,47 @@ public class EnemyBase : MonoBehaviour, IInteractable
         }
         CheckPlayerAim();
         RotateHealthBar();
+     
+        if (playerCoverState == CoverState.InCover || playerCoverState == CoverState.InCoverColliding)
+        {
+            grenadeTimer += Time.deltaTime;
+            if (grenadeTimer >= grenadeThrowInterval)
+            {
+                ThrowGrenade();
+                grenadeTimer = 0f;
+            }
+        }
+        else
+        {
+            grenadeTimer = 0f; 
+        }
+    }
+    public void SetPlayerCoverState(CoverState state, Vector3 position)
+    {
+        playerCoverState = state;
+        playerLastCoverPosition = position;
+    }
+    private void ThrowGrenade()
+    {
+        if (grenadePrefab != null && grenadeShootPoint != null)
+        {
+            GameObject grenade = Instantiate(grenadePrefab, grenadeShootPoint.position, Quaternion.identity);
+            Grenade grenadeScript = grenade.GetComponent<Grenade>();
+            if (grenadeScript != null)
+            {
+                Vector3 displacement = playerLastCoverPosition - grenadeShootPoint.position;
+                float distance = displacement.magnitude;
+                float gravity = Physics.gravity.magnitude;
+                float timeOfFlight = Mathf.Sqrt((2 * distance) / gravity);
+                Vector3 velocity = new Vector3(
+                    displacement.x / timeOfFlight,
+                    gravity * timeOfFlight / 2,
+                    displacement.z / timeOfFlight
+                );
+
+                grenadeScript.Launch(velocity);
+            }
+        }
     }
     public void RotateTowardsPlayer()
     {

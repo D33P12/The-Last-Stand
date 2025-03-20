@@ -98,6 +98,7 @@ Transform:
   m_Children:
   - {fileID: 391716068697121487}
   - {fileID: 55112891195068780}
+  - {fileID: 5243647034448886482}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4870481866608434227
@@ -225,3 +226,37 @@ MonoBehaviour:
   dropSpawnPoint: {fileID: 55112891195068780}
   healthBar: {fileID: 0}
   healthCanvas: {fileID: 0}
+  grenadeThrowInterval: 5
+  grenadePrefab: {fileID: 636889029987280417, guid: 254e7de9108c7aa41bec085f41583a98, type: 3}
+  grenadeShootPoint: {fileID: 5243647034448886482}
+--- !u!1 &6510396617886447705
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5243647034448886482}
+  m_Layer: 0
+  m_Name: DP (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5243647034448886482
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6510396617886447705}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.48, z: 1.06}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5199038891652970719}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
