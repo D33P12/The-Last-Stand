@@ -89,6 +89,33 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CoverMovement"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""179be18c-6cab-42e7-a002-8090efa02406"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CoverShoulderChange"",
+                    ""type"": ""Button"",
+                    ""id"": ""7fdd9407-edeb-4688-b697-d6bd036c9fa3"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CoverADS"",
+                    ""type"": ""Button"",
+                    ""id"": ""686ada3c-b323-4e7f-8d0c-836d08bb0851"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -173,6 +200,17 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""name"": """",
                     ""id"": ""a586f29b-f0c4-45b1-94c4-961bb00a634b"",
                     ""path"": ""<Keyboard>/c"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cover"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b92972f3-3ff7-402f-a569-6f384a6930a0"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -289,6 +327,133 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""action"": ""Reload"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""2D Vector"",
+                    ""id"": ""ef943ba1-f37b-453d-a6be-63f4a8718ad5"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverMovement"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""a349b9cc-c3fe-484f-bfcf-028d6979e0d8"",
+                    ""path"": ""<Keyboard>/a"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverMovement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""b544242a-9a1b-4105-bfcd-658491295dcd"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverMovement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""83714a00-485d-4fa1-913c-6e481cc4f4e0"",
+                    ""path"": ""<Gamepad>/leftStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverMovement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""addc69c9-bd28-4e48-99a8-0cb6430fbe22"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverShoulderChange"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""60e33e01-56e2-44a7-8294-4a22bffdfec7"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverShoulderChange"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e58b66ea-2848-43f4-a410-79f2605c3f2d"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverADS"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4d6811d8-1761-4f7b-82df-541bce501f6a"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CoverADS"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""PlayerUI"",
+            ""id"": ""bf945e8e-a617-4c1f-a312-00a9173ec975"",
+            ""actions"": [
+                {
+                    ""name"": ""OpenPause"",
+                    ""type"": ""Button"",
+                    ""id"": ""394b0f1a-0d59-45fc-a4db-8c8b9dcbbde3"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""c5989e7d-fc15-423f-ab80-8d42129a4d7d"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OpenPause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d762bcb2-02ff-47ee-9383-1fe759130b27"",
+                    ""path"": ""<Gamepad>/select"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OpenPause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -304,11 +469,18 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         m_PlayerMovement_Look = m_PlayerMovement.FindAction("Look", throwIfNotFound: true);
         m_PlayerMovement_ADS = m_PlayerMovement.FindAction("ADS", throwIfNotFound: true);
         m_PlayerMovement_Reload = m_PlayerMovement.FindAction("Reload", throwIfNotFound: true);
+        m_PlayerMovement_CoverMovement = m_PlayerMovement.FindAction("CoverMovement", throwIfNotFound: true);
+        m_PlayerMovement_CoverShoulderChange = m_PlayerMovement.FindAction("CoverShoulderChange", throwIfNotFound: true);
+        m_PlayerMovement_CoverADS = m_PlayerMovement.FindAction("CoverADS", throwIfNotFound: true);
+        // PlayerUI
+        m_PlayerUI = asset.FindActionMap("PlayerUI", throwIfNotFound: true);
+        m_PlayerUI_OpenPause = m_PlayerUI.FindAction("OpenPause", throwIfNotFound: true);
     }
 
     ~@Inputs()
     {
         UnityEngine.Debug.Assert(!m_PlayerMovement.enabled, "This will cause a leak and performance issues, Inputs.PlayerMovement.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_PlayerUI.enabled, "This will cause a leak and performance issues, Inputs.PlayerUI.Disable() has not been called.");
     }
 
     public void Dispose()
@@ -377,6 +549,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerMovement_Look;
     private readonly InputAction m_PlayerMovement_ADS;
     private readonly InputAction m_PlayerMovement_Reload;
+    private readonly InputAction m_PlayerMovement_CoverMovement;
+    private readonly InputAction m_PlayerMovement_CoverShoulderChange;
+    private readonly InputAction m_PlayerMovement_CoverADS;
     public struct PlayerMovementActions
     {
         private @Inputs m_Wrapper;
@@ -388,6 +563,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         public InputAction @Look => m_Wrapper.m_PlayerMovement_Look;
         public InputAction @ADS => m_Wrapper.m_PlayerMovement_ADS;
         public InputAction @Reload => m_Wrapper.m_PlayerMovement_Reload;
+        public InputAction @CoverMovement => m_Wrapper.m_PlayerMovement_CoverMovement;
+        public InputAction @CoverShoulderChange => m_Wrapper.m_PlayerMovement_CoverShoulderChange;
+        public InputAction @CoverADS => m_Wrapper.m_PlayerMovement_CoverADS;
         public InputActionMap Get() { return m_Wrapper.m_PlayerMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -418,6 +596,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Reload.started += instance.OnReload;
             @Reload.performed += instance.OnReload;
             @Reload.canceled += instance.OnReload;
+            @CoverMovement.started += instance.OnCoverMovement;
+            @CoverMovement.performed += instance.OnCoverMovement;
+            @CoverMovement.canceled += instance.OnCoverMovement;
+            @CoverShoulderChange.started += instance.OnCoverShoulderChange;
+            @CoverShoulderChange.performed += instance.OnCoverShoulderChange;
+            @CoverShoulderChange.canceled += instance.OnCoverShoulderChange;
+            @CoverADS.started += instance.OnCoverADS;
+            @CoverADS.performed += instance.OnCoverADS;
+            @CoverADS.canceled += instance.OnCoverADS;
         }
 
         private void UnregisterCallbacks(IPlayerMovementActions instance)
@@ -443,6 +630,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Reload.started -= instance.OnReload;
             @Reload.performed -= instance.OnReload;
             @Reload.canceled -= instance.OnReload;
+            @CoverMovement.started -= instance.OnCoverMovement;
+            @CoverMovement.performed -= instance.OnCoverMovement;
+            @CoverMovement.canceled -= instance.OnCoverMovement;
+            @CoverShoulderChange.started -= instance.OnCoverShoulderChange;
+            @CoverShoulderChange.performed -= instance.OnCoverShoulderChange;
+            @CoverShoulderChange.canceled -= instance.OnCoverShoulderChange;
+            @CoverADS.started -= instance.OnCoverADS;
+            @CoverADS.performed -= instance.OnCoverADS;
+            @CoverADS.canceled -= instance.OnCoverADS;
         }
 
         public void RemoveCallbacks(IPlayerMovementActions instance)
@@ -460,6 +656,52 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         }
     }
     public PlayerMovementActions @PlayerMovement => new PlayerMovementActions(this);
+
+    // PlayerUI
+    private readonly InputActionMap m_PlayerUI;
+    private List<IPlayerUIActions> m_PlayerUIActionsCallbackInterfaces = new List<IPlayerUIActions>();
+    private readonly InputAction m_PlayerUI_OpenPause;
+    public struct PlayerUIActions
+    {
+        private @Inputs m_Wrapper;
+        public PlayerUIActions(@Inputs wrapper) { m_Wrapper = wrapper; }
+        public InputAction @OpenPause => m_Wrapper.m_PlayerUI_OpenPause;
+        public InputActionMap Get() { return m_Wrapper.m_PlayerUI; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(PlayerUIActions set) { return set.Get(); }
+        public void AddCallbacks(IPlayerUIActions instance)
+        {
+            if (instance == null || m_Wrapper.m_PlayerUIActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_PlayerUIActionsCallbackInterfaces.Add(instance);
+            @OpenPause.started += instance.OnOpenPause;
+            @OpenPause.performed += instance.OnOpenPause;
+            @OpenPause.canceled += instance.OnOpenPause;
+        }
+
+        private void UnregisterCallbacks(IPlayerUIActions instance)
+        {
+            @OpenPause.started -= instance.OnOpenPause;
+            @OpenPause.performed -= instance.OnOpenPause;
+            @OpenPause.canceled -= instance.OnOpenPause;
+        }
+
+        public void RemoveCallbacks(IPlayerUIActions instance)
+        {
+            if (m_Wrapper.m_PlayerUIActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IPlayerUIActions instance)
+        {
+            foreach (var item in m_Wrapper.m_PlayerUIActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_PlayerUIActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public PlayerUIActions @PlayerUI => new PlayerUIActions(this);
     public interface IPlayerMovementActions
     {
         void OnMovement(InputAction.CallbackContext context);
@@ -469,5 +711,12 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         void OnLook(InputAction.CallbackContext context);
         void OnADS(InputAction.CallbackContext context);
         void OnReload(InputAction.CallbackContext context);
+        void OnCoverMovement(InputAction.CallbackContext context);
+        void OnCoverShoulderChange(InputAction.CallbackContext context);
+        void OnCoverADS(InputAction.CallbackContext context);
+    }
+    public interface IPlayerUIActions
+    {
+        void OnOpenPause(InputAction.CallbackContext context);
     }
 }

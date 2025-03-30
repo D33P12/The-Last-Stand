@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class WaveManager : MonoBehaviour
-{
-  public static WaveManager Instance { get; private set; }
-
+{ 
+    public static WaveManager Instance { get; private set; }
     [Header("Wave Settings")]
     [SerializeField] private GameObject enemyPrefab;
     [SerializeField] private Transform[] spawnPoints;
@@ -18,20 +17,28 @@ public class WaveManager : MonoBehaviour
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI enemyCounterText;
-
     [Header("Player Reference")]
     [SerializeField] private Transform player;
     [SerializeField] private Camera playerCamera;
-    
+
     private void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+            DontDestroyOnLoad(gameObject); 
+        }
         else
+        {
             Destroy(gameObject);
+        }
     }
     private void Start()
     {
+        if (spawnPoints == null || spawnPoints.Length == 0)
+        {
+            return;
+        }
         SpawnInitialEnemies();
         UpdateEnemyCounter();
     }
@@ -48,21 +55,21 @@ public class WaveManager : MonoBehaviour
 
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
         GameObject newEnemy = Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
-
         EnemyBase enemyScript = newEnemy.GetComponent<EnemyBase>();
         if (enemyScript != null)
         {
             enemyScript.SetPlayer(player);
             enemyScript.SetCamera(playerCamera);
+            enemyScript.OnDeath += OnEnemyDeath; 
         }
-
         _totalEnemiesSpawned++;
         _currentAliveEnemies++;
         UpdateEnemyCounter();
     }
-    public void OnEnemyDeath()
+    public void OnEnemyDeath(EnemyBase enemy)
     {
         _currentAliveEnemies--;
+        enemy.OnDeath -= OnEnemyDeath;
 
         if (_totalEnemiesSpawned < totalEnemiesToSpawn)
         {
@@ -70,9 +77,8 @@ public class WaveManager : MonoBehaviour
         }
         else if (_currentAliveEnemies == 0)
         {
-            Debug.Log("Wave Complete!");
+            SceneManager.LoadScene(3);
         }
-
         UpdateEnemyCounter();
     }
     private void UpdateEnemyCounter()

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 using UnityEngine.UI;
@@ -45,14 +46,6 @@ public class ShootiController : MonoBehaviour
     [SerializeField]
     private float reloadTime = 2f;
 
-    [Header("Recoil Settings")]
-    [SerializeField]
-    private float recoilAmount = 2f;
-
-    [SerializeField] private float recoilRecoverySpeed = 5f;
-    [SerializeField] private float upwardRecoilRotationAmount = 5f;
-
-    [FormerlySerializedAs("_isInCover")]
     [Header("Cover System")]
     [SerializeField]
     private bool isInCover = false;
@@ -65,7 +58,6 @@ public class ShootiController : MonoBehaviour
     [Header("Target Objects")]
     [SerializeField] private Transform shootTargetObject;
 
-    // References to the cameras
     [Header("Camera References")]
     [SerializeField]
     public Camera playerCamera;
@@ -73,21 +65,16 @@ public class ShootiController : MonoBehaviour
 
     private bool _canShoot = true;
     private Quaternion _originalCameraRotation;
-    private bool _isRecoiling = false;
     private Animator _playerAnimator;
     [SerializeField] private Image crosshairImage;
-
     public bool IsShooting => _isShooting;
-
     private PlayerController _playerController;
-
     private void Start()
     {
         _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>();
         _playerController = GetComponent<PlayerController>();
         LockCursorToCenter();
     }
-
     private void Awake()
     {
         _controls = new Inputs();
@@ -103,18 +90,10 @@ public class ShootiController : MonoBehaviour
             _originalCameraRotation = shootCamera.transform.localRotation;
         }
     }
-
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
-
     private void Update()
     {
-        if (_isRecoiling)
-        {
-            shootCamera.transform.localRotation = Quaternion.Lerp(shootCamera.transform.localRotation,
-                _originalCameraRotation, Time.deltaTime * recoilRecoverySpeed);
-        }
-
         UpdateAmmoDisplay();
         if (Cursor.lockState != CursorLockMode.Locked)
         {
@@ -126,7 +105,6 @@ public class ShootiController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
-
     private void TryShoot()
     {
         if (_playerController._coverState == CoverState.InCoverColliding)
@@ -161,7 +139,6 @@ public class ShootiController : MonoBehaviour
     private void HandleShootingLogic(Vector3 shootDir, Vector3 shootPosition)
     {
         if (!_canShoot || _isReloading || _currentAmmo <= 0 || Time.time - _lastShootTime < 0.1f) return;
-
         _isShooting = true;
         _lastShootTime = Time.time;
         GameObject bullet = GetBulletFromPool();
@@ -176,10 +153,8 @@ public class ShootiController : MonoBehaviour
             {
                 rb.linearVelocity = shootDir * bulletSpeed;
             }
-
             StartCoroutine(ReturnBulletToPool(bullet, 2f));
         }
-        ApplyRecoil();
         _currentAmmo--;
         _playerAnimator.SetBool("IsShooting", true);
         StartCoroutine(ResetShootingAnimation());
@@ -189,20 +164,6 @@ public class ShootiController : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         _playerAnimator.SetBool("IsShooting", false);
         _isShooting = false;
-    }
-    private void ApplyRecoil()
-    {
-        if (shootCamera == null) return;
-
-        Vector3 recoilOffset = new Vector3(
-            Random.Range(-recoilAmount, recoilAmount) * 0.1f,
-            Random.Range(-recoilAmount, recoilAmount) * 0.1f,
-            0
-        );
-        Quaternion upwardRecoil = Quaternion.Euler(upwardRecoilRotationAmount, 0, 0);
-        shootCamera.transform.localRotation *= upwardRecoil;
-        shootCamera.transform.localPosition += recoilOffset;
-        _isRecoiling = true;
     }
     private void InitializeBulletPool()
     {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
@@ -5,10 +6,12 @@ using UnityEngine.UI;
 
 public class EnemyBase : MonoBehaviour, IInteractable
 {
-     [SerializeField] public NavMeshAgent agent;
+    public event Action<EnemyBase> OnDeath;
+
+    [SerializeField] public NavMeshAgent agent;
     private Transform _player;
     public Transform firePoint;
-    public GameObject bulletPrefab; // Reference to the bullet prefab
+    public GameObject bulletPrefab;
 
     [Header("Enemy Settings")]
     public float enemyRange = 10f;
@@ -24,8 +27,8 @@ public class EnemyBase : MonoBehaviour, IInteractable
     [SerializeField] private int maxHealth = 100;
     private int _currentHealth;
 
-    [SerializeField] private GameObject[] dropPrefabs;
-    [SerializeField] private Transform dropSpawnPoint;
+    [SerializeField] internal GameObject[] dropPrefabs;
+    [SerializeField] internal Transform dropSpawnPoint;
     private bool _isDead = false;
 
     [Header("Health UI")]
@@ -34,6 +37,22 @@ public class EnemyBase : MonoBehaviour, IInteractable
 
     private Camera _playerCamera;
     private ShootiController _shootiController;
+
+    [SerializeField]
+    private float grenadeThrowInterval = 5f;
+    [SerializeField]
+    private GameObject grenadePrefab;
+    [SerializeField]
+    private Transform grenadeShootPoint;
+
+    private float grenadeTimer = 0f;
+    private Vector3 playerLastCoverPosition;
+    private CoverState playerCoverState;
+
+    internal Animator animator;
+    private bool isMoving = false;
+    private Vector3 moveDirection = Vector3.zero;
+    private bool isThrowingGrenade = false;
 
     public void SetPlayer(Transform playerTransform)
     {
@@ -45,30 +64,94 @@ public class EnemyBase : MonoBehaviour, IInteractable
     }
     void Start()
     {
+        animator = GetComponentInChildren<Animator>();
         agent = GetComponent<NavMeshAgent>();
         _stateMachine = new EnemyStateMachine();
         _stateMachine.ChangeState(new PatrolState(_stateMachine, this));
         _currentHealth = maxHealth;
         InitializeHealthBar();
         UpdateHealthUI();
-
         if (WaveManager.Instance != null)
         {
             _playerCamera = WaveManager.Instance.GetPlayerCamera();
         }
-
         if (healthCanvas != null)
             healthCanvas.gameObject.SetActive(false);
     }
     void Update()
     {
         _stateMachine.Update();
+
+        bool shouldMove = agent.velocity.magnitude > 0.1f;
+        Vector3 moveDirection = agent.velocity.normalized;
+
+        animator.SetBool("isMoving", shouldMove);
+        animator.SetFloat("moveX", moveDirection.x);
+        animator.SetFloat("moveY", moveDirection.z);
         if (_player != null && DetectPlayer())
         {
             RotateTowardsPlayer();
         }
         CheckPlayerAim();
         RotateHealthBar();
+        if (playerCoverState == CoverState.InCover || playerCoverState == CoverState.InCoverColliding)
+        {
+            grenadeTimer += Time.deltaTime;
+            if (grenadeTimer >= grenadeThrowInterval)
+            {
+                ThrowGrenade();
+                grenadeTimer = 0f;
+            }
+        }
+        else
+        {
+            grenadeTimer = 0f;
+        }
+        animator.SetBool("isThrowingGrenade", isThrowingGrenade);
+    }
+    public void SetPlayerCoverState(CoverState state, Vector3 position)
+    {
+        playerCoverState = state;
+        playerLastCoverPosition = position;
+    }
+    private void ThrowGrenade()
+    {
+        if (grenadePrefab != null && grenadeShootPoint != null)
+        {
+            isThrowingGrenade = true;
+            GameObject grenade = Instantiate(grenadePrefab, grenadeShootPoint.position, Quaternion.identity);
+            Grenade grenadeScript = grenade.GetComponent<Grenade>();
+            if (grenadeScript != null)
+            {
+                Vector3 displacement = playerLastCoverPosition - grenadeShootPoint.position;
+                float distance = displacement.magnitude;
+                float gravity = Physics.gravity.magnitude;
+                float timeOfFlight = Mathf.Sqrt((2 * distance) / gravity);
+                Vector3 velocity = new Vector3(
+                    displacement.x / timeOfFlight,
+                    gravity * timeOfFlight / 2,
+                    displacement.z / timeOfFlight
+                );
+                grenadeScript.Launch(velocity);
+            }
+            Invoke("ResetThrowGrenade", 1f);
+        }
+    }
+    private void ResetThrowGrenade()
+    {
+        isThrowingGrenade = false;
+    }
+    public void MoveTo(Vector3 targetPosition)
+    {
+        isMoving = true;
+        moveDirection = (targetPosition - transform.position).normalized;
+        agent.SetDestination(targetPosition);
+    }
+    public void StopMoving()
+    {
+        isMoving = false;
+        moveDirection = Vector3.zero;
+        agent.ResetPath();
     }
     public void RotateTowardsPlayer()
     {
@@ -108,9 +191,7 @@ public class EnemyBase : MonoBehaviour, IInteractable
             {
                 bulletScript.SetSpeed(bulletSpeed);
             }
-
             Debug.Log($"Shooting bullet from {firePoint.position} towards {_player.position}");
-
             yield return new WaitForSeconds(fireRate / bulletsPerRound);
         }
         _isShooting = false;
@@ -145,14 +226,12 @@ public class EnemyBase : MonoBehaviour, IInteractable
     {
         if (_isDead) return;
         _isDead = true;
-        if (dropPrefabs.Length > 0)
-        {
-            int randomIndex = Random.Range(0, dropPrefabs.Length);
-            Vector3 spawnPosition = dropSpawnPoint != null ? dropSpawnPoint.position : transform.position;
-            Instantiate(dropPrefabs[randomIndex], spawnPosition, Quaternion.identity);
-        }
-        WaveManager.Instance.OnEnemyDeath();
-        Destroy(gameObject, 2f);
+        isMoving = false;
+        isThrowingGrenade = false;
+        agent.ResetPath();
+        agent.isStopped = true;
+        _stateMachine.ChangeState(new DeathState(_stateMachine, this));
+        OnDeath?.Invoke(this);
     }
     private void CheckPlayerAim()
     {

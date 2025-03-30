@@ -11,10 +11,6 @@ public class EnemyBullet : MonoBehaviour
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
-        if (_rb == null)
-        {
-            Debug.LogError("No Rigidbody found on bullet!", this);
-        }
     }
     public void SetSpeed(float newSpeed)
     {
