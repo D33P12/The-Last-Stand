@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     public GameSettings gameSettings;
     public CoverState CoverState { get; private set; }
 
-    private bool isPaused = false;
+    internal bool isPaused = false;
 
     void Start()
     {
@@ -161,10 +161,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             {
                 HandleCoverMovement();
                 UpdateCoverCamera();
-                if (Input.GetKeyDown(KeyCode.Mouse1))
-                {
-                    CoverShoulderSwitch();
-                }
+             
                 if (_coverState == CoverState.InCoverColliding)
                 {
                     bool isMoving = _movement.magnitude > 0.1f;

@@ -116,6 +116,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""OpenMenu"",
+                    ""type"": ""Button"",
+                    ""id"": ""4baa3bb2-db3b-4e9d-ac60-bd2778d2f8df"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -415,6 +424,28 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""action"": ""CoverADS"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f837c032-e0bb-41ac-add4-6b5757dba79f"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OpenMenu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""16499352-c890-449a-950a-5d7e044ba993"",
+                    ""path"": ""<Gamepad>/select"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OpenMenu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -423,9 +454,18 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             ""id"": ""bf945e8e-a617-4c1f-a312-00a9173ec975"",
             ""actions"": [
                 {
-                    ""name"": ""OpenPause"",
+                    ""name"": ""CloseMenu"",
                     ""type"": ""Button"",
                     ""id"": ""394b0f1a-0d59-45fc-a4db-8c8b9dcbbde3"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Navigate"",
+                    ""type"": ""Button"",
+                    ""id"": ""67d64331-f061-4af8-9c07-f88e125b1f9b"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -440,7 +480,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""OpenPause"",
+                    ""action"": ""CloseMenu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -451,14 +491,37 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""OpenPause"",
+                    ""action"": ""CloseMenu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8bd6325e-f2ea-4e74-96ff-46079ad24830"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Navigate"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
             ]
         }
     ],
-    ""controlSchemes"": []
+    ""controlSchemes"": [
+        {
+            ""name"": ""Keyboard"",
+            ""bindingGroup"": ""Keyboard"",
+            ""devices"": [
+                {
+                    ""devicePath"": ""<Keyboard>"",
+                    ""isOptional"": false,
+                    ""isOR"": false
+                }
+            ]
+        }
+    ]
 }");
         // PlayerMovement
         m_PlayerMovement = asset.FindActionMap("PlayerMovement", throwIfNotFound: true);
@@ -472,9 +535,11 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         m_PlayerMovement_CoverMovement = m_PlayerMovement.FindAction("CoverMovement", throwIfNotFound: true);
         m_PlayerMovement_CoverShoulderChange = m_PlayerMovement.FindAction("CoverShoulderChange", throwIfNotFound: true);
         m_PlayerMovement_CoverADS = m_PlayerMovement.FindAction("CoverADS", throwIfNotFound: true);
+        m_PlayerMovement_OpenMenu = m_PlayerMovement.FindAction("OpenMenu", throwIfNotFound: true);
         // PlayerUI
         m_PlayerUI = asset.FindActionMap("PlayerUI", throwIfNotFound: true);
-        m_PlayerUI_OpenPause = m_PlayerUI.FindAction("OpenPause", throwIfNotFound: true);
+        m_PlayerUI_CloseMenu = m_PlayerUI.FindAction("CloseMenu", throwIfNotFound: true);
+        m_PlayerUI_Navigate = m_PlayerUI.FindAction("Navigate", throwIfNotFound: true);
     }
 
     ~@Inputs()
@@ -552,6 +617,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerMovement_CoverMovement;
     private readonly InputAction m_PlayerMovement_CoverShoulderChange;
     private readonly InputAction m_PlayerMovement_CoverADS;
+    private readonly InputAction m_PlayerMovement_OpenMenu;
     public struct PlayerMovementActions
     {
         private @Inputs m_Wrapper;
@@ -566,6 +632,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         public InputAction @CoverMovement => m_Wrapper.m_PlayerMovement_CoverMovement;
         public InputAction @CoverShoulderChange => m_Wrapper.m_PlayerMovement_CoverShoulderChange;
         public InputAction @CoverADS => m_Wrapper.m_PlayerMovement_CoverADS;
+        public InputAction @OpenMenu => m_Wrapper.m_PlayerMovement_OpenMenu;
         public InputActionMap Get() { return m_Wrapper.m_PlayerMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -605,6 +672,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @CoverADS.started += instance.OnCoverADS;
             @CoverADS.performed += instance.OnCoverADS;
             @CoverADS.canceled += instance.OnCoverADS;
+            @OpenMenu.started += instance.OnOpenMenu;
+            @OpenMenu.performed += instance.OnOpenMenu;
+            @OpenMenu.canceled += instance.OnOpenMenu;
         }
 
         private void UnregisterCallbacks(IPlayerMovementActions instance)
@@ -639,6 +709,9 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @CoverADS.started -= instance.OnCoverADS;
             @CoverADS.performed -= instance.OnCoverADS;
             @CoverADS.canceled -= instance.OnCoverADS;
+            @OpenMenu.started -= instance.OnOpenMenu;
+            @OpenMenu.performed -= instance.OnOpenMenu;
+            @OpenMenu.canceled -= instance.OnOpenMenu;
         }
 
         public void RemoveCallbacks(IPlayerMovementActions instance)
@@ -660,12 +733,14 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     // PlayerUI
     private readonly InputActionMap m_PlayerUI;
     private List<IPlayerUIActions> m_PlayerUIActionsCallbackInterfaces = new List<IPlayerUIActions>();
-    private readonly InputAction m_PlayerUI_OpenPause;
+    private readonly InputAction m_PlayerUI_CloseMenu;
+    private readonly InputAction m_PlayerUI_Navigate;
     public struct PlayerUIActions
     {
         private @Inputs m_Wrapper;
         public PlayerUIActions(@Inputs wrapper) { m_Wrapper = wrapper; }
-        public InputAction @OpenPause => m_Wrapper.m_PlayerUI_OpenPause;
+        public InputAction @CloseMenu => m_Wrapper.m_PlayerUI_CloseMenu;
+        public InputAction @Navigate => m_Wrapper.m_PlayerUI_Navigate;
         public InputActionMap Get() { return m_Wrapper.m_PlayerUI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -675,16 +750,22 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_PlayerUIActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_PlayerUIActionsCallbackInterfaces.Add(instance);
-            @OpenPause.started += instance.OnOpenPause;
-            @OpenPause.performed += instance.OnOpenPause;
-            @OpenPause.canceled += instance.OnOpenPause;
+            @CloseMenu.started += instance.OnCloseMenu;
+            @CloseMenu.performed += instance.OnCloseMenu;
+            @CloseMenu.canceled += instance.OnCloseMenu;
+            @Navigate.started += instance.OnNavigate;
+            @Navigate.performed += instance.OnNavigate;
+            @Navigate.canceled += instance.OnNavigate;
         }
 
         private void UnregisterCallbacks(IPlayerUIActions instance)
         {
-            @OpenPause.started -= instance.OnOpenPause;
-            @OpenPause.performed -= instance.OnOpenPause;
-            @OpenPause.canceled -= instance.OnOpenPause;
+            @CloseMenu.started -= instance.OnCloseMenu;
+            @CloseMenu.performed -= instance.OnCloseMenu;
+            @CloseMenu.canceled -= instance.OnCloseMenu;
+            @Navigate.started -= instance.OnNavigate;
+            @Navigate.performed -= instance.OnNavigate;
+            @Navigate.canceled -= instance.OnNavigate;
         }
 
         public void RemoveCallbacks(IPlayerUIActions instance)
@@ -702,6 +783,15 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         }
     }
     public PlayerUIActions @PlayerUI => new PlayerUIActions(this);
+    private int m_KeyboardSchemeIndex = -1;
+    public InputControlScheme KeyboardScheme
+    {
+        get
+        {
+            if (m_KeyboardSchemeIndex == -1) m_KeyboardSchemeIndex = asset.FindControlSchemeIndex("Keyboard");
+            return asset.controlSchemes[m_KeyboardSchemeIndex];
+        }
+    }
     public interface IPlayerMovementActions
     {
         void OnMovement(InputAction.CallbackContext context);
@@ -714,9 +804,11 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         void OnCoverMovement(InputAction.CallbackContext context);
         void OnCoverShoulderChange(InputAction.CallbackContext context);
         void OnCoverADS(InputAction.CallbackContext context);
+        void OnOpenMenu(InputAction.CallbackContext context);
     }
     public interface IPlayerUIActions
     {
-        void OnOpenPause(InputAction.CallbackContext context);
+        void OnCloseMenu(InputAction.CallbackContext context);
+        void OnNavigate(InputAction.CallbackContext context);
     }
 }

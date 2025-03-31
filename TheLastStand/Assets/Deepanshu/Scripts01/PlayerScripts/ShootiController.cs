@@ -73,7 +73,6 @@ public class ShootiController : MonoBehaviour
     {
         _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>();
         _playerController = GetComponent<PlayerController>();
-        LockCursorToCenter();
     }
     private void Awake()
     {
@@ -95,16 +94,8 @@ public class ShootiController : MonoBehaviour
     private void Update()
     {
         UpdateAmmoDisplay();
-        if (Cursor.lockState != CursorLockMode.Locked)
-        {
-            LockCursorToCenter();
-        }
     }
-    private void LockCursorToCenter()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
+
     private void TryShoot()
     {
         if (_playerController._coverState == CoverState.InCoverColliding)

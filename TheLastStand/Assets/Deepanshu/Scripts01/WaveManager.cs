@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 public class WaveManager : MonoBehaviour
 { 
     public static WaveManager Instance { get; private set; }
+
     [Header("Wave Settings")]
     [SerializeField] private GameObject enemyPrefab;
     [SerializeField] private Transform[] spawnPoints;
@@ -17,6 +18,7 @@ public class WaveManager : MonoBehaviour
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI enemyCounterText;
+
     [Header("Player Reference")]
     [SerializeField] private Transform player;
     [SerializeField] private Camera playerCamera;
@@ -26,9 +28,8 @@ public class WaveManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); 
         }
-        else
+        else if (Instance != this)
         {
             Destroy(gameObject);
         }
@@ -41,6 +42,13 @@ public class WaveManager : MonoBehaviour
         }
         SpawnInitialEnemies();
         UpdateEnemyCounter();
+    }
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
     private void SpawnInitialEnemies()
     {
@@ -60,7 +68,7 @@ public class WaveManager : MonoBehaviour
         {
             enemyScript.SetPlayer(player);
             enemyScript.SetCamera(playerCamera);
-            enemyScript.OnDeath += OnEnemyDeath; 
+            enemyScript.OnDeath += OnEnemyDeath;
         }
         _totalEnemiesSpawned++;
         _currentAliveEnemies++;
