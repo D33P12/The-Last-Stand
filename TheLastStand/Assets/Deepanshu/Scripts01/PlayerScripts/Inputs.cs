@@ -417,7 +417,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""4d6811d8-1761-4f7b-82df-541bce501f6a"",
-                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -464,8 +464,26 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""Navigate"",
-                    ""type"": ""Button"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""67d64331-f061-4af8-9c07-f88e125b1f9b"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Submit"",
+                    ""type"": ""Button"",
+                    ""id"": ""897ce3a5-d6b2-41e1-9056-40707b603403"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancel"",
+                    ""type"": ""Button"",
+                    ""id"": ""0d249730-657f-417d-8c9d-021bf85378b7"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -498,11 +516,33 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""8bd6325e-f2ea-4e74-96ff-46079ad24830"",
-                    ""path"": """",
+                    ""path"": ""<Gamepad>/leftStick"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Navigate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bb0f6ba0-8187-409d-97ff-89d0a182091b"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7595cf0f-114b-4f79-ac62-6c1fe30bb5ef"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -540,6 +580,8 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
         m_PlayerUI = asset.FindActionMap("PlayerUI", throwIfNotFound: true);
         m_PlayerUI_CloseMenu = m_PlayerUI.FindAction("CloseMenu", throwIfNotFound: true);
         m_PlayerUI_Navigate = m_PlayerUI.FindAction("Navigate", throwIfNotFound: true);
+        m_PlayerUI_Submit = m_PlayerUI.FindAction("Submit", throwIfNotFound: true);
+        m_PlayerUI_Cancel = m_PlayerUI.FindAction("Cancel", throwIfNotFound: true);
     }
 
     ~@Inputs()
@@ -735,12 +777,16 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     private List<IPlayerUIActions> m_PlayerUIActionsCallbackInterfaces = new List<IPlayerUIActions>();
     private readonly InputAction m_PlayerUI_CloseMenu;
     private readonly InputAction m_PlayerUI_Navigate;
+    private readonly InputAction m_PlayerUI_Submit;
+    private readonly InputAction m_PlayerUI_Cancel;
     public struct PlayerUIActions
     {
         private @Inputs m_Wrapper;
         public PlayerUIActions(@Inputs wrapper) { m_Wrapper = wrapper; }
         public InputAction @CloseMenu => m_Wrapper.m_PlayerUI_CloseMenu;
         public InputAction @Navigate => m_Wrapper.m_PlayerUI_Navigate;
+        public InputAction @Submit => m_Wrapper.m_PlayerUI_Submit;
+        public InputAction @Cancel => m_Wrapper.m_PlayerUI_Cancel;
         public InputActionMap Get() { return m_Wrapper.m_PlayerUI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -756,6 +802,12 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Navigate.started += instance.OnNavigate;
             @Navigate.performed += instance.OnNavigate;
             @Navigate.canceled += instance.OnNavigate;
+            @Submit.started += instance.OnSubmit;
+            @Submit.performed += instance.OnSubmit;
+            @Submit.canceled += instance.OnSubmit;
+            @Cancel.started += instance.OnCancel;
+            @Cancel.performed += instance.OnCancel;
+            @Cancel.canceled += instance.OnCancel;
         }
 
         private void UnregisterCallbacks(IPlayerUIActions instance)
@@ -766,6 +818,12 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
             @Navigate.started -= instance.OnNavigate;
             @Navigate.performed -= instance.OnNavigate;
             @Navigate.canceled -= instance.OnNavigate;
+            @Submit.started -= instance.OnSubmit;
+            @Submit.performed -= instance.OnSubmit;
+            @Submit.canceled -= instance.OnSubmit;
+            @Cancel.started -= instance.OnCancel;
+            @Cancel.performed -= instance.OnCancel;
+            @Cancel.canceled -= instance.OnCancel;
         }
 
         public void RemoveCallbacks(IPlayerUIActions instance)
@@ -810,5 +868,7 @@ public partial class @Inputs: IInputActionCollection2, IDisposable
     {
         void OnCloseMenu(InputAction.CallbackContext context);
         void OnNavigate(InputAction.CallbackContext context);
+        void OnSubmit(InputAction.CallbackContext context);
+        void OnCancel(InputAction.CallbackContext context);
     }
 }
