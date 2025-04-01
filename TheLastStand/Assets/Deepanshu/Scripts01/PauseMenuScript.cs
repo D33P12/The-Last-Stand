@@ -6,13 +6,14 @@ using UnityEngine.UI;
 
 public class PauseMenuScript : MonoBehaviour
 {   
-    private Inputs _controls;
+   private Inputs _controls;
     public GameObject pauseMenuCanvas;
     public Slider aimSensitivitySlider;
+    public Slider musicVolumeSlider;
     private ShootiController shootiController;
     private PlayerController playerController;
     public GameSettings gameSettings;
-
+    public MusicSettings musicSettings;
     private void Awake()
     {
         _controls = new Inputs();
@@ -22,6 +23,7 @@ public class PauseMenuScript : MonoBehaviour
     }
     private void Start()
     {
+        SoundManager.Instance.PlayAudioContinuous(SoundManager.AudioType.BG, 0.5f);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -29,8 +31,12 @@ public class PauseMenuScript : MonoBehaviour
         {
             aimSensitivitySlider.value = gameSettings.aimSensitivity;
         }
-
         aimSensitivitySlider.onValueChanged.AddListener(OnAimSensitivityChanged);
+        if (musicVolumeSlider != null && musicSettings != null)
+        {
+            musicVolumeSlider.value = musicSettings.musicVolume;
+        }
+        musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
     }
     private void OnEnable()
     {
@@ -64,6 +70,14 @@ public class PauseMenuScript : MonoBehaviour
         if (gameSettings != null)
         {
             gameSettings.aimSensitivity = value;
+        }
+    }
+    private void OnMusicVolumeChanged(float value)
+    {
+        if (musicSettings != null)
+        {
+            musicSettings.musicVolume = value;
+            SoundManager.Instance.SetMusicVolume(value);
         }
     }
     public void PauseGame()
