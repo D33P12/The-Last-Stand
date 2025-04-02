@@ -4,11 +4,11 @@ public class SoundManager : MonoBehaviour
 { 
     public enum AudioType
     {
-        BG
+        Bg
     }
     public static SoundManager Instance { get; private set; }
     [SerializeField] private AudioClip[] audioList;
-    private AudioSource audioSource;
+    private AudioSource _audioSource;
     public MusicSettings musicSettings;
     private void Awake()
     {
@@ -24,45 +24,46 @@ public class SoundManager : MonoBehaviour
     }
     private void Start()
     {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
+        _audioSource = GetComponent<AudioSource>();
+        if (_audioSource == null)
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource = gameObject.AddComponent<AudioSource>();
         }
         if (musicSettings != null)
         {
-            audioSource.volume = musicSettings.musicVolume;
+            _audioSource.volume = musicSettings.musicVolume;
         }
     }
     public void PlayAudio(AudioType sound, float volume = 0.25f)
     {
         if (audioList.Length > (int)sound && audioList[(int)sound] != null)
         {
-            audioSource.loop = false;
-            audioSource.PlayOneShot(audioList[(int)sound], volume);
+            _audioSource.loop = false;
+            _audioSource.PlayOneShot(audioList[(int)sound], volume);
         }
     }
     public void PlayAudioContinuous(AudioType sound, float volume = 0.5f)
     {
         if (audioList.Length > (int)sound && audioList[(int)sound] != null)
         {
-            audioSource.clip = audioList[(int)sound];
-            audioSource.loop = true;
-            audioSource.volume = volume;
-            audioSource.Play();
+            _audioSource.clip = audioList[(int)sound];
+            _audioSource.loop = true;
+            _audioSource.volume = volume;
+            _audioSource.Play();
         }
     }
     public void StopPlaying()
     {
-        audioSource.loop = false;
-        audioSource.Stop();
+        _audioSource.loop = false;
+        _audioSource.Stop();
     }
     public void SetMusicVolume(float volume)
     {
         if (musicSettings != null)
         {
             musicSettings.musicVolume = volume;
-            audioSource.volume = volume;
+            _audioSource.volume = volume;
+            Debug.Log("Music volume set to: " + volume); // Debug log
         }
     }
 }

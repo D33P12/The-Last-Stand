@@ -98,18 +98,18 @@ public class ShootiController : MonoBehaviour
 
     private void TryShoot()
     {
-        if (_playerController._coverState == CoverState.InCoverColliding)
+        if (_playerController.coverState == CoverState.InCoverColliding)
         {
             CoverShoot();
         }
-        else if (_playerController._coverState == CoverState.NotInCover)
+        else if (_playerController.coverState == CoverState.NotInCover)
         {
             Shoot();
         }
     }
     private void CoverShoot()
     {
-        if (_playerController._coverState != CoverState.InCoverColliding) return;
+        if (_playerController.coverState != CoverState.InCoverColliding) return;
 
         Vector3 shootDir = coverCamera.transform.forward;
         Debug.DrawRay(shootPoint.position, shootDir * 100f, Color.green, 2f);
@@ -119,7 +119,7 @@ public class ShootiController : MonoBehaviour
     }
     private void Shoot()
     {
-        if (_playerController._coverState != CoverState.NotInCover) return;
+        if (_playerController.coverState != CoverState.NotInCover) return;
 
         Vector3 shootDir = playerCamera.transform.forward;
         Debug.DrawRay(shootPoint.position, shootDir * 100f, Color.red, 2f);

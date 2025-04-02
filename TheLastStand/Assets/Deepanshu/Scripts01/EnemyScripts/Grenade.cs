@@ -11,20 +11,20 @@ public class Grenade : MonoBehaviour
     [SerializeField]
     private LayerMask groundLayer;
 
-    private float timer;
-    private bool hasLanded = false;
-    private Rigidbody rb;
+    private float _timer;
+    private bool _hasLanded = false;
+    private Rigidbody _rb;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody>();
     }
     private void Update()
     {
-        if (hasLanded)
+        if (_hasLanded)
         {
-            timer += Time.deltaTime;
-            if (timer >= timerDuration)
+            _timer += Time.deltaTime;
+            if (_timer >= timerDuration)
             {
                 Explode();
             }
@@ -32,18 +32,18 @@ public class Grenade : MonoBehaviour
     }
     private void OnCollisionEnter(Collision collision)
     {
-        if (((1 << collision.gameObject.layer) & groundLayer) != 0 && !hasLanded)
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0 && !_hasLanded)
         {
-            hasLanded = true;
-            rb.isKinematic = true;
-            rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            _hasLanded = true;
+            _rb.isKinematic = true;
+            _rb.useGravity = false;
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
         }
     }
     public void Launch(Vector3 velocity)
     {
-        rb.linearVelocity = velocity;
+        _rb.linearVelocity = velocity;
     }
     private void Explode()
     {

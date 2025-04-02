@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private Vector2 _coverMovement;
 
     [SerializeField] private int maxHealth = 100;
-    internal int _currentHealth;
+    internal int CurrentHealth;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] public Transform shootPoint;
 
@@ -29,9 +29,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField] private float adsMoveSpeed = 3f;
     [SerializeField] private float coverAdsMoveSpeed = 2f;
     [SerializeField] private Rigidbody rb;
-
-    [Header("Recoil (Shooting)")]
-    [SerializeField] private float recoilAmount = 0.2f;
 
     [Header("Mouse Look Settings")]
     [SerializeField] private float playerPitchClamp = 80f;
@@ -60,8 +57,8 @@ public class PlayerController : MonoBehaviour, IDamageable
     [Header("Cover System")]
     [SerializeField] private LayerMask coverLayer;
     [SerializeField] private float coverCheckDistance = 2f;
-    private Transform leftCoverPoint; 
-    private Transform rightCoverPoint;
+    private Transform _leftCoverPoint; 
+    private Transform _rightCoverPoint;
     [SerializeField] private float coverMoveSpeed = 2f;
 
     [Header("Cover Camera Offsets")]
@@ -77,15 +74,15 @@ public class PlayerController : MonoBehaviour, IDamageable
     private bool _isLeftShoulder = true;
 
     [SerializeField] private Animator animator;
-    private float turnDirection;
-    private float turnSmoothTime = 0.1f;
-    private bool isHit = false;
-    private float hitDuration = 0.5f;
-    private float hitTimer = 0f;
+    private float _turnDirection;
+    private float _turnSmoothTime = 0.1f;
+    private bool _isHit = false;
+    private float _hitDuration = 0.5f;
+    private float _hitTimer = 0f;
     [SerializeField] private MultiAimConstraint[] aimConstraints;
     [SerializeField] private MultiAimConstraint[] coverAimConstraints;
     private float _moveX, _moveY;
-    private int coverLayerIndex = 3;
+    private int _coverLayerIndex = 3;
 
     [SerializeField]
     private GameObject objectToFlip;
@@ -96,7 +93,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField] private Vector3 coverCameraOffset = new Vector3(0f, 1f, 0f);
     [SerializeField] private Transform playerTarget;
 
-    public CoverState _coverState = CoverState.NotInCover;
+    [FormerlySerializedAs("_coverState")] public CoverState coverState = CoverState.NotInCover;
 
     [SerializeField]
     private Transform target;
@@ -109,12 +106,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     public GameSettings gameSettings;
     public CoverState CoverState { get; private set; }
 
-    internal bool isPaused = false;
+    internal bool IsPaused = false;
 
     void Start()
     {
         UpdateAimConstraints();
-        _currentHealth = maxHealth;
+        CurrentHealth = maxHealth;
         UpdateHealthUI();
         if (playerCamera != null)
         {
@@ -152,7 +149,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void OnDisable() => _controls.Disable();
     private void Update()
     {
-        if (!isPaused)
+        if (!IsPaused)
         {
             HandleMovement();
             HandleLook();
@@ -162,21 +159,21 @@ public class PlayerController : MonoBehaviour, IDamageable
                 HandleCoverMovement();
                 UpdateCoverCamera();
              
-                if (_coverState == CoverState.InCoverColliding)
+                if (coverState == CoverState.InCoverColliding)
                 {
                     bool isMoving = _movement.magnitude > 0.1f;
                     animator.SetBool("isInCoverColliding", !isMoving);
                     animator.SetBool("IsInCover", isMoving);
                 }
             }
-            if (isHit)
+            if (_isHit)
             {
-                hitTimer += Time.deltaTime;
-                if (hitTimer >= hitDuration)
+                _hitTimer += Time.deltaTime;
+                if (_hitTimer >= _hitDuration)
                 {
-                    isHit = false;
+                    _isHit = false;
                     animator.SetBool("IsHit", false);
-                    hitTimer = 0f;
+                    _hitTimer = 0f;
                 }
             }
             UpdateObjectToFlipRotation();
@@ -185,7 +182,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
     private void HandleMovement()
     {
-        if (isInCover || isPaused) return;
+        if (isInCover || IsPaused) return;
         float currentMoveSpeed = _isAds ? adsMoveSpeed : (_isCoverAds ? coverAdsMoveSpeed : moveSpeed);
         Vector3 inputDir = new Vector3(_movement.x, 0, _movement.y);
         inputDir = transform.TransformDirection(inputDir);
@@ -196,6 +193,10 @@ public class PlayerController : MonoBehaviour, IDamageable
         _moveY = Mathf.Lerp(_moveY, targetMoveY, Time.deltaTime * 10f);
         animator.SetFloat("MoveX", _moveX);
         animator.SetFloat("MoveY", _moveY);
+    }
+    public void SetAimSensitivity(float sensitivity)
+    {
+        gameSettings.aimSensitivity = sensitivity;
     }
     private void HandleLook()
     {
@@ -219,9 +220,9 @@ public class PlayerController : MonoBehaviour, IDamageable
                 cameraPivot.localRotation = Quaternion.Euler(_pitch, 0, 0);
             float targetTurnDirection = _yaw - previousYaw;
             bool isTurning = Mathf.Abs(targetTurnDirection) > 0.1f && _movement.magnitude < 0.1f;
-            turnDirection = Mathf.Lerp(turnDirection, targetTurnDirection, Time.deltaTime / turnSmoothTime);
+            _turnDirection = Mathf.Lerp(_turnDirection, targetTurnDirection, Time.deltaTime / _turnSmoothTime);
             animator.SetBool("IsTurning", isTurning);
-            animator.SetFloat("TurnDirection", turnDirection);
+            animator.SetFloat("TurnDirection", _turnDirection);
         }
     }
     private void UpdateCamera()
@@ -287,7 +288,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         _isLeftShoulder = !_isLeftShoulder;
         coverCameraOffset = _isLeftShoulder ? leftShoulderOffset : rightShoulderOffset;
         UpdateCoverCamera();
-        _coverDirection = (rightCoverPoint.position - leftCoverPoint.position).normalized;
+        _coverDirection = (_rightCoverPoint.position - _leftCoverPoint.position).normalized;
         Vector3 perpendicularDirection = Vector3.Cross(_coverDirection, Vector3.up);
         transform.rotation = Quaternion.LookRotation(perpendicularDirection);
     }
@@ -304,10 +305,10 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             animator.SetBool("IsTakingCover", true);
             var cover = hit.collider.gameObject;
-            leftCoverPoint = cover.transform.Find("LeftCoverPoint");
-            rightCoverPoint = cover.transform.Find("RightCoverPoint");
+            _leftCoverPoint = cover.transform.Find("LeftCoverPoint");
+            _rightCoverPoint = cover.transform.Find("RightCoverPoint");
 
-            if (leftCoverPoint != null && rightCoverPoint != null)
+            if (_leftCoverPoint != null && _rightCoverPoint != null)
             {
                 EnterCover(hit.point);
             }
@@ -321,13 +322,13 @@ public class PlayerController : MonoBehaviour, IDamageable
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         transform.position = coverPosition;
-        _coverDirection = (rightCoverPoint.position - leftCoverPoint.position).normalized;
+        _coverDirection = (_rightCoverPoint.position - _leftCoverPoint.position).normalized;
         Vector3 perpendicularDirection = Vector3.Cross(_coverDirection, Vector3.up);
         transform.rotation = Quaternion.LookRotation(perpendicularDirection);
 
         animator.SetBool("IsInCover", true);
         animator.SetFloat("CoverMovement", 0);
-        animator.SetLayerWeight(coverLayerIndex, 1f);
+        animator.SetLayerWeight(_coverLayerIndex, 1f);
 
         lastCoverPosition = coverPosition;
         CoverState = CoverState.InCover;
@@ -353,8 +354,8 @@ public class PlayerController : MonoBehaviour, IDamageable
         float sideMove = _coverMovement.x;
         Vector3 moveDirection = _coverDirection;
         Vector3 newPosition = transform.position + (moveDirection * (sideMove * coverMoveSpeed * Time.deltaTime));
-        float leftBound = Vector3.Dot(newPosition - leftCoverPoint.position, moveDirection);
-        float rightBound = Vector3.Dot(newPosition - rightCoverPoint.position, moveDirection);
+        float leftBound = Vector3.Dot(newPosition - _leftCoverPoint.position, moveDirection);
+        float rightBound = Vector3.Dot(newPosition - _rightCoverPoint.position, moveDirection);
         if (leftBound >= 0 && rightBound <= 0)
         {
             rb.MovePosition(newPosition);
@@ -365,7 +366,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         isInCover = false;
         currentCover = null;
-        animator.SetLayerWeight(coverLayerIndex, 0f);
+        animator.SetLayerWeight(_coverLayerIndex, 0f);
         animator.SetBool("IsInCover", false);
         foreach (var constraint in aimConstraints)
         {
@@ -395,30 +396,31 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
     public void TakeDamage(int damage)
     {
-        _currentHealth -= damage;
-        isHit = true;
+        CurrentHealth -= damage;
+        _isHit = true;
         animator.SetBool("IsHit", true);
         UpdateHealthUI();
-        if (_currentHealth <= 0)
+        if (CurrentHealth == 0)
             Die();
     }
     private void UpdateHealthUI()
     {
         if (healthText != null)
-            healthText.text = $"Player Health: {_currentHealth}";
+            healthText.text = $"Player Health: {CurrentHealth}";
     }
     public void Heal(int amount)
     {
-        _currentHealth = Mathf.Min(_currentHealth + amount, maxHealth);
+        CurrentHealth = Mathf.Min(CurrentHealth + amount, maxHealth);
         UpdateHealthUI();
     }
     private void Die()
     {
-        Debug.Log("Player Died!");
+        GameOverScript.Instance.GameOver();
+       
     }
     private void UpdateAimConstraints()
     {
-        switch (_coverState)
+        switch (coverState)
         {
             case CoverState.NotInCover:
                 foreach (var constraint in aimConstraints)
@@ -461,12 +463,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         if (isInCover && !Physics.CheckSphere(transform.position, 0.5f, LayerMask.GetMask("CoverCorner")))
         {
-            _coverState = CoverState.InCover;
+            coverState = CoverState.InCover;
             objectToFlip.transform.localRotation = Quaternion.Euler(0, 180, 0);
         }
         else
         {
-            _coverState = isInCover ? CoverState.InCoverColliding : CoverState.NotInCover;
+            coverState = isInCover ? CoverState.InCoverColliding : CoverState.NotInCover;
             objectToFlip.transform.localRotation = Quaternion.Euler(0, 0, 0);
         }
     }

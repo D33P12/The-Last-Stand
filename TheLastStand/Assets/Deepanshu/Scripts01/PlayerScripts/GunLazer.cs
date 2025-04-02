@@ -14,8 +14,8 @@ public class GunLazer : MonoBehaviour
     private float startWidth = 0.1f; 
     [SerializeField]
     private float endWidth = 0.1f; 
-    private Camera activeCamera;
-    private PlayerController playerController;
+    private Camera _activeCamera;
+    private PlayerController _playerController;
     void Start()
     {
         laserLine = gameObject.AddComponent<LineRenderer>();
@@ -36,22 +36,22 @@ public class GunLazer : MonoBehaviour
         gradient.alphaKeys = alphaKeys;
 
         laserLine.colorGradient = gradient;
-        playerController = GetComponent<PlayerController>();
+        _playerController = GetComponent<PlayerController>();
     }
     void Update()
     {
-        laserLine.enabled = playerController._coverState != CoverState.InCover;
+        laserLine.enabled = _playerController.coverState != CoverState.InCover;
         if (laserLine.enabled)
         {
-            if (playerController._coverState == CoverState.InCoverColliding)
+            if (_playerController.coverState == CoverState.InCoverColliding)
             {
-                activeCamera = coverCamera;
+                _activeCamera = coverCamera;
             }
             else
             {
-                activeCamera = primaryCamera;
+                _activeCamera = primaryCamera;
             }
-            Vector3 shootDir = activeCamera.transform.forward;
+            Vector3 shootDir = _activeCamera.transform.forward;
             Ray ray = new Ray(shootPoint.position, shootDir);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, laserRange))

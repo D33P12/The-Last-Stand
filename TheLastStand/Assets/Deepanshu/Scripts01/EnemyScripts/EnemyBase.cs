@@ -45,14 +45,14 @@ public class EnemyBase : MonoBehaviour, IInteractable
     [SerializeField]
     private Transform grenadeShootPoint;
 
-    private float grenadeTimer = 0f;
-    private Vector3 playerLastCoverPosition;
-    private CoverState playerCoverState;
+    private float _grenadeTimer = 0f;
+    private Vector3 _playerLastCoverPosition;
+    private CoverState _playerCoverState;
 
-    internal Animator animator;
-    private bool isMoving = false;
-    private Vector3 moveDirection = Vector3.zero;
-    private bool isThrowingGrenade = false;
+    internal Animator Animator;
+    private bool _isMoving = false;
+    private Vector3 _moveDirection = Vector3.zero;
+    private bool _isThrowingGrenade = false;
 
     public void SetPlayer(Transform playerTransform)
     {
@@ -64,7 +64,7 @@ public class EnemyBase : MonoBehaviour, IInteractable
     }
     void Start()
     {
-        animator = GetComponentInChildren<Animator>();
+        Animator = GetComponentInChildren<Animator>();
         agent = GetComponent<NavMeshAgent>();
         _stateMachine = new EnemyStateMachine();
         _stateMachine.ChangeState(new PatrolState(_stateMachine, this));
@@ -85,45 +85,45 @@ public class EnemyBase : MonoBehaviour, IInteractable
         bool shouldMove = agent.velocity.magnitude > 0.1f;
         Vector3 moveDirection = agent.velocity.normalized;
 
-        animator.SetBool("isMoving", shouldMove);
-        animator.SetFloat("moveX", moveDirection.x);
-        animator.SetFloat("moveY", moveDirection.z);
+        Animator.SetBool("isMoving", shouldMove);
+        Animator.SetFloat("moveX", moveDirection.x);
+        Animator.SetFloat("moveY", moveDirection.z);
         if (_player != null && DetectPlayer())
         {
             RotateTowardsPlayer();
         }
         CheckPlayerAim();
         RotateHealthBar();
-        if (playerCoverState == CoverState.InCover || playerCoverState == CoverState.InCoverColliding)
+        if (_playerCoverState == CoverState.InCover || _playerCoverState == CoverState.InCoverColliding)
         {
-            grenadeTimer += Time.deltaTime;
-            if (grenadeTimer >= grenadeThrowInterval)
+            _grenadeTimer += Time.deltaTime;
+            if (_grenadeTimer >= grenadeThrowInterval)
             {
                 ThrowGrenade();
-                grenadeTimer = 0f;
+                _grenadeTimer = 0f;
             }
         }
         else
         {
-            grenadeTimer = 0f;
+            _grenadeTimer = 0f;
         }
-        animator.SetBool("isThrowingGrenade", isThrowingGrenade);
+        Animator.SetBool("isThrowingGrenade", _isThrowingGrenade);
     }
     public void SetPlayerCoverState(CoverState state, Vector3 position)
     {
-        playerCoverState = state;
-        playerLastCoverPosition = position;
+        _playerCoverState = state;
+        _playerLastCoverPosition = position;
     }
     private void ThrowGrenade()
     {
         if (grenadePrefab != null && grenadeShootPoint != null)
         {
-            isThrowingGrenade = true;
+            _isThrowingGrenade = true;
             GameObject grenade = Instantiate(grenadePrefab, grenadeShootPoint.position, Quaternion.identity);
             Grenade grenadeScript = grenade.GetComponent<Grenade>();
             if (grenadeScript != null)
             {
-                Vector3 displacement = playerLastCoverPosition - grenadeShootPoint.position;
+                Vector3 displacement = _playerLastCoverPosition - grenadeShootPoint.position;
                 float distance = displacement.magnitude;
                 float gravity = Physics.gravity.magnitude;
                 float timeOfFlight = Mathf.Sqrt((2 * distance) / gravity);
@@ -139,18 +139,18 @@ public class EnemyBase : MonoBehaviour, IInteractable
     }
     private void ResetThrowGrenade()
     {
-        isThrowingGrenade = false;
+        _isThrowingGrenade = false;
     }
     public void MoveTo(Vector3 targetPosition)
     {
-        isMoving = true;
-        moveDirection = (targetPosition - transform.position).normalized;
+        _isMoving = true;
+        _moveDirection = (targetPosition - transform.position).normalized;
         agent.SetDestination(targetPosition);
     }
     public void StopMoving()
     {
-        isMoving = false;
-        moveDirection = Vector3.zero;
+        _isMoving = false;
+        _moveDirection = Vector3.zero;
         agent.ResetPath();
     }
     public void RotateTowardsPlayer()
@@ -226,8 +226,8 @@ public class EnemyBase : MonoBehaviour, IInteractable
     {
         if (_isDead) return;
         _isDead = true;
-        isMoving = false;
-        isThrowingGrenade = false;
+        _isMoving = false;
+        _isThrowingGrenade = false;
         agent.ResetPath();
         agent.isStopped = true;
         _stateMachine.ChangeState(new DeathState(_stateMachine, this));

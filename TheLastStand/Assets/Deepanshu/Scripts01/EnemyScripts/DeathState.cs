@@ -12,7 +12,7 @@ public class DeathState : EnemyBaseState
             Vector3 spawnPosition = Enemy.dropSpawnPoint != null ? Enemy.dropSpawnPoint.position : Enemy.transform.position;
             Object.Instantiate(Enemy.dropPrefabs[randomIndex], spawnPosition, Quaternion.identity);
         }
-        Enemy.animator.SetTrigger("EnemyDeath");
+        Enemy.Animator.SetTrigger("EnemyDeath");
         GameObject.Destroy(Enemy.gameObject, 15f);
     }
     public override void UpdateState() { }

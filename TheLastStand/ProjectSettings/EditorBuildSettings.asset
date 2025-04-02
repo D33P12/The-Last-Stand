@@ -6,17 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/sayed/Main Menu.unity
-    guid: 54b05d5ac453f9440be1e2b576326ffa
+    path: Assets/Deepanshu/Scripts01/MainMenu.unity
+    guid: f62e62980a298eb418beac7a6ab46907
   - enabled: 1
     path: Assets/Deepanshu/Scenes/TestGym.unity
     guid: 66717e6fd23ffd44a8098c56e610a4ee
-  - enabled: 1
-    path: Assets/sayed/pause mneu sample 1.unity
-    guid: ece018e4e54a5cb41a760e5ad9b05c77
-  - enabled: 1
-    path: Assets/sayed/pause mneu sample 2.unity
-    guid: 45d6b73125692464e925fafe5ba4d73c
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   m_UseUCBPForAssetBundles: 0

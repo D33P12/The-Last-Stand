@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 277259fa59e7bb14abc6512d1b991ce5, type: 3}
   m_Name: GameSettings
   m_EditorClassIdentifier: 
-  aimSensitivity: 2
+  aimSensitivity: 7.29
