@@ -191,7 +191,7 @@ public class EnemyBase : MonoBehaviour, IInteractable
             {
                 bulletScript.SetSpeed(bulletSpeed);
             }
-            Debug.Log($"Shooting bullet from {firePoint.position} towards {_player.position}");
+       
             yield return new WaitForSeconds(fireRate / bulletsPerRound);
         }
         _isShooting = false;

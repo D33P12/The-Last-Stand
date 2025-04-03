@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
+
 public class WaveManager : MonoBehaviour
 { 
     public static WaveManager Instance { get; private set; }
@@ -22,6 +25,8 @@ public class WaveManager : MonoBehaviour
     [Header("Player Reference")]
     [SerializeField] private Transform player;
     [SerializeField] private Camera playerCamera;
+
+    public event Action OnLevelComplete;
 
     private void Awake()
     {
@@ -85,7 +90,7 @@ public class WaveManager : MonoBehaviour
         }
         else if (_currentAliveEnemies == 0)
         {
-            SceneManager.LoadScene(3);
+            OnLevelComplete?.Invoke();
         }
         UpdateEnemyCounter();
     }

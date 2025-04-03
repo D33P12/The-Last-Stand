@@ -110,6 +110,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     void Start()
     {
+       
         UpdateAimConstraints();
         CurrentHealth = maxHealth;
         UpdateHealthUI();
@@ -128,6 +129,8 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
     private void Awake()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         _controls = new Inputs();
         _shootiController = GetComponent<ShootiController>();
         _controls.PlayerMovement.Movement.performed += ctx => _movement = ctx.ReadValue<Vector2>();

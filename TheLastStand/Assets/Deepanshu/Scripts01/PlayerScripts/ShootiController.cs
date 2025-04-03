@@ -123,8 +123,7 @@ public class ShootiController : MonoBehaviour
 
         Vector3 shootDir = playerCamera.transform.forward;
         Debug.DrawRay(shootPoint.position, shootDir * 100f, Color.red, 2f);
-        Debug.Log("Normal Shooting - Direction: " + shootDir + ", From: " + shootPoint.position);
-
+        
         HandleShootingLogic(shootDir, shootPoint.position);
     }
     private void HandleShootingLogic(Vector3 shootDir, Vector3 shootPosition)

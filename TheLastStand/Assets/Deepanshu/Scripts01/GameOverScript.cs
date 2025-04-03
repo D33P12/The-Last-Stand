@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -15,9 +16,10 @@ public class GameOverScript : MonoBehaviour
     private ShootiController _shootiController;
     private PlayerController _playerController;
     public float gameDuration = 60f;
-    private float timer;
+    private float _timer;
     public TextMeshProUGUI timerText;
-    private MenuNavigation menuNavigation;
+    private MenuNavigation _menuNavigation;
+
     private void Awake()
     {
         if (Instance == null)
@@ -32,9 +34,9 @@ public class GameOverScript : MonoBehaviour
         gameOverCanvas.SetActive(false);
         _shootiController = FindObjectOfType<ShootiController>();
         _playerController = FindObjectOfType<PlayerController>();
-        timer = gameDuration;
+        _timer = gameDuration;
 
-        menuNavigation = FindObjectOfType<MenuNavigation>();
+        _menuNavigation = FindObjectOfType<MenuNavigation>();
     }
     private void Start()
     {
@@ -47,6 +49,8 @@ public class GameOverScript : MonoBehaviour
     }
     private void OnDisable()
     {
+        _controls.PlayerMovement.Disable();
+        _controls.PlayerUI.Disable();
     }
     private void OnOpenMenu(InputAction.CallbackContext context)
     {
@@ -80,12 +84,12 @@ public class GameOverScript : MonoBehaviour
         _controls.PlayerMovement.Disable();
         _controls.PlayerUI.Enable();
     }
-    private IEnumerator GameTimer()
+    private System.Collections.IEnumerator GameTimer()
     {
-        while (timer > 0)
+        while (_timer > 0)
         {
             yield return new WaitForSeconds(1f);
-            timer--;
+            _timer--;
             UpdateTimerText();
         }
         GameOver();
@@ -100,13 +104,13 @@ public class GameOverScript : MonoBehaviour
         Cursor.visible = true;
         Time.timeScale = 0;
 
-        menuNavigation.ActivateGameOverMenu();
+        _menuNavigation.ActivateGameOverMenu();
     }
     private void UpdateTimerText()
     {
         if (timerText != null)
         {
-            timerText.text = "Time Left: " + Mathf.FloorToInt(timer).ToString();
+            timerText.text = "Time Left: " + Mathf.FloorToInt(_timer).ToString();
         }
     }
 }
