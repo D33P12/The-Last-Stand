@@ -331,7 +331,7 @@ MonoBehaviour:
   dropSpawnPoint: {fileID: 55112891195068780}
   healthBar: {fileID: 1752189981555604340}
   healthCanvas: {fileID: 1923208576692640410}
-  grenadeThrowInterval: 5
+  grenadeThrowInterval: 10.18
   grenadePrefab: {fileID: 636889029987280417, guid: 254e7de9108c7aa41bec085f41583a98, type: 3}
   grenadeShootPoint: {fileID: 5243647034448886482}
 --- !u!114 &4611130704440883403

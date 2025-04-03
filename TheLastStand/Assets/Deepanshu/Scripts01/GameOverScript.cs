@@ -19,6 +19,7 @@ public class GameOverScript : MonoBehaviour
     private float _timer;
     public TextMeshProUGUI timerText;
     private MenuNavigation _menuNavigation;
+    public LevelSettings levelSettings;
 
     private void Awake()
     {
@@ -35,7 +36,6 @@ public class GameOverScript : MonoBehaviour
         _shootiController = FindObjectOfType<ShootiController>();
         _playerController = FindObjectOfType<PlayerController>();
         _timer = gameDuration;
-
         _menuNavigation = FindObjectOfType<MenuNavigation>();
     }
     private void Start()
@@ -71,6 +71,7 @@ public class GameOverScript : MonoBehaviour
     }
     public void RestartGame()
     {
+        levelSettings.ResetToDefault();
         Time.timeScale = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -108,6 +109,7 @@ public class GameOverScript : MonoBehaviour
     }
     public void MainMenu()
     {
+        levelSettings.ResetToDefault();
         SceneManager.LoadScene(0);
     }
     private void UpdateTimerText()
@@ -116,5 +118,9 @@ public class GameOverScript : MonoBehaviour
         {
             timerText.text = "Time Left: " + Mathf.FloorToInt(_timer).ToString();
         }
+    }
+    public void OnQuitGame()
+    {
+        Application.Quit();
     }
 }

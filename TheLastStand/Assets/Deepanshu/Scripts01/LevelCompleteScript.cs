@@ -1,14 +1,18 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LevelCompleteScript : MonoBehaviour
 {
     public static LevelCompleteScript Instance { get; private set; }
     private Inputs _controls;
     public GameObject levelCompleteCanvas;
+    public Button nextLevelButton;
+    public Button restartButton;
     private ShootiController _shootiController;
     private PlayerController _playerController;
     private MenuNavigation _menuNavigation;
+    public LevelSettings levelSettings;
 
     private void Awake()
     {
@@ -25,6 +29,9 @@ public class LevelCompleteScript : MonoBehaviour
         _shootiController = FindObjectOfType<ShootiController>();
         _playerController = FindObjectOfType<PlayerController>();
         _menuNavigation = FindObjectOfType<MenuNavigation>();
+
+        nextLevelButton.onClick.AddListener(LoadNextLevelWithIncreasedDifficulty);
+        restartButton.onClick.AddListener(RestartGameWithDefaultSettings);
     }
     private void Start()
     {
@@ -59,9 +66,19 @@ public class LevelCompleteScript : MonoBehaviour
 
         _menuNavigation.ActivateLevelCompleteMenu();
     }
-    public void RestartGame()
+    public void MainMenu()
     {
-        Time.timeScale = 1;
+        levelSettings.ResetToDefault();
+        SceneManager.LoadScene(0);
+    }
+    public void LoadNextLevelWithIncreasedDifficulty()
+    {
+        levelSettings.IncreaseDifficulty();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    public void RestartGameWithDefaultSettings()
+    {
+        levelSettings.ResetToDefault();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     public void EnablePlayerMovement()
@@ -73,5 +90,9 @@ public class LevelCompleteScript : MonoBehaviour
     {
         _controls.PlayerMovement.Disable();
         _controls.PlayerUI.Enable();
+    }
+    public void OnQuitGame()
+    {
+        Application.Quit();
     }
 }

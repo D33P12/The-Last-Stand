@@ -8,14 +8,12 @@ using Random = UnityEngine.Random;
 
 public class WaveManager : MonoBehaviour
 { 
-    public static WaveManager Instance { get; private set; }
+   public static WaveManager Instance { get; private set; }
 
     [Header("Wave Settings")]
     [SerializeField] private GameObject enemyPrefab;
     [SerializeField] private Transform[] spawnPoints;
-    [SerializeField] private int totalEnemiesToSpawn = 10;
-    [SerializeField] private int maxEnemiesInScene = 5;
-
+    public LevelSettings levelSettings;
     private int _totalEnemiesSpawned = 0;
     private int _currentAliveEnemies = 0;
 
@@ -57,14 +55,16 @@ public class WaveManager : MonoBehaviour
     }
     private void SpawnInitialEnemies()
     {
-        for (int i = 0; i < maxEnemiesInScene && _totalEnemiesSpawned < totalEnemiesToSpawn; i++)
+        int enemyCount = levelSettings.GetEnemyCount();
+        for (int i = 0; i < enemyCount && _totalEnemiesSpawned < enemyCount; i++)
         {
             SpawnEnemy();
         }
     }
     private void SpawnEnemy()
     {
-        if (_totalEnemiesSpawned >= totalEnemiesToSpawn || _currentAliveEnemies >= maxEnemiesInScene) return;
+        int enemyCount = levelSettings.GetEnemyCount();
+        if (_totalEnemiesSpawned >= enemyCount || _currentAliveEnemies >= enemyCount) return;
 
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
         GameObject newEnemy = Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
@@ -84,7 +84,8 @@ public class WaveManager : MonoBehaviour
         _currentAliveEnemies--;
         enemy.OnDeath -= OnEnemyDeath;
 
-        if (_totalEnemiesSpawned < totalEnemiesToSpawn)
+        int enemyCount = levelSettings.GetEnemyCount();
+        if (_totalEnemiesSpawned < enemyCount)
         {
             SpawnEnemy();
         }
@@ -96,9 +97,10 @@ public class WaveManager : MonoBehaviour
     }
     private void UpdateEnemyCounter()
     {
+        int enemyCount = levelSettings.GetEnemyCount();
         if (enemyCounterText != null)
         {
-            enemyCounterText.text = $"Enemies Remaining: {totalEnemiesToSpawn - _totalEnemiesSpawned + _currentAliveEnemies}";
+            enemyCounterText.text = $"Enemies Remaining: {enemyCount - _totalEnemiesSpawned + _currentAliveEnemies}";
         }
     }
     public Camera GetPlayerCamera()

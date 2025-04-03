@@ -14,7 +14,7 @@ public enum CoverState
 }
 public class PlayerController : MonoBehaviour, IDamageable
 { 
-    private Inputs _controls;
+   private Inputs _controls;
     private Vector2 _movement;
     private Vector2 _lookDelta;
     private Vector2 _coverMovement;
@@ -57,9 +57,10 @@ public class PlayerController : MonoBehaviour, IDamageable
     [Header("Cover System")]
     [SerializeField] private LayerMask coverLayer;
     [SerializeField] private float coverCheckDistance = 2f;
-    private Transform _leftCoverPoint; 
+    private Transform _leftCoverPoint;
     private Transform _rightCoverPoint;
     [SerializeField] private float coverMoveSpeed = 2f;
+    private GameObject _currentCoverObject;
 
     [Header("Cover Camera Offsets")]
     [SerializeField] private Vector3 leftShoulderOffset = new Vector3(-1f, 0f, 0f);
@@ -107,10 +108,10 @@ public class PlayerController : MonoBehaviour, IDamageable
     public CoverState CoverState { get; private set; }
 
     internal bool IsPaused = false;
-
     void Start()
     {
-       
+        ExitCover();
+
         UpdateAimConstraints();
         CurrentHealth = maxHealth;
         UpdateHealthUI();
@@ -162,7 +163,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             {
                 HandleCoverMovement();
                 UpdateCoverCamera();
-             
+
                 if (coverState == CoverState.InCoverColliding)
                 {
                     bool isMoving = _movement.magnitude > 0.1f;
@@ -309,6 +310,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             animator.SetBool("IsTakingCover", true);
             var cover = hit.collider.gameObject;
+            _currentCoverObject = cover;
             _leftCoverPoint = cover.transform.Find("LeftCoverPoint");
             _rightCoverPoint = cover.transform.Find("RightCoverPoint");
 
@@ -352,6 +354,11 @@ public class PlayerController : MonoBehaviour, IDamageable
             playerCamera.gameObject.SetActive(false);
         }
         transform.localScale = Vector3.one;
+        GameObject obstacle = _currentCoverObject.transform.Find("Obstacle")?.gameObject;
+        if (obstacle != null)
+        {
+            obstacle.SetActive(true);
+        }
     }
     private void HandleCoverMovement()
     {
@@ -389,6 +396,15 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         transform.localScale = Vector3.one;
         NotifyEnemiesOfCoverState();
+        if (_currentCoverObject != null)
+        {
+            GameObject obstacle = _currentCoverObject.transform.Find("Obstacle")?.gameObject;
+            if (obstacle != null)
+            {
+                obstacle.SetActive(false);
+            }
+        }
+        _currentCoverObject = null;
     }
     private void NotifyEnemiesOfCoverState()
     {
@@ -420,7 +436,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void Die()
     {
         GameOverScript.Instance.GameOver();
-       
     }
     private void UpdateAimConstraints()
     {

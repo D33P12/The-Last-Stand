@@ -152,7 +152,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   explosionRadius: 4.79
   explosionDamage: 20
-  timerDuration: 9
+  timerDuration: 3.63
   groundLayer:
     serializedVersion: 2
     m_Bits: 128

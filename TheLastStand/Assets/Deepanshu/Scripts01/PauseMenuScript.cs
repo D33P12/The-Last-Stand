@@ -20,7 +20,7 @@ public class PauseMenuScript : MonoBehaviour
     private const string MusicVolumeKey = "MusicVolume";
 
     private MenuNavigation _menuNavigation;
-
+    public LevelSettings levelSettings;
     private void Awake()
     {
         _controls = new Inputs();
@@ -107,6 +107,7 @@ public class PauseMenuScript : MonoBehaviour
     }
     public void RestartGame()
     {
+        levelSettings.ResetToDefault();
         Time.timeScale = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -126,9 +127,19 @@ public class PauseMenuScript : MonoBehaviour
         gameSettings.aimSensitivity = PlayerPrefs.GetFloat(AimSensitivityKey, gameSettings.aimSensitivity);
         musicSettings.musicVolume = PlayerPrefs.GetFloat(MusicVolumeKey, musicSettings.musicVolume);
     }
+    public void MainMenu()
+    {
+        levelSettings.ResetToDefault();
+        SceneManager.LoadScene(0);
+    }
     private void ApplyAimSensitivity(float sensitivity)
     {
         if (_playerController != null)
             _playerController.SetAimSensitivity(sensitivity);
     }
+    public void OnQuitGame()
+    {
+        Application.Quit();
+    }
+    
 }

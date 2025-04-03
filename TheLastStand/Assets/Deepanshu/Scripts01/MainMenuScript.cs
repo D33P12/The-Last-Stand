@@ -15,12 +15,10 @@ public class MainMenuScript : MonoBehaviour
   {
     _controls.PlayerUI.Enable();
     _controls.PlayerUI.Submit.performed += OnStartGame;
-    _controls.PlayerUI.Cancel.performed += OnQuitGame;
   }
   private void OnDisable()
   {
     _controls.PlayerUI.Submit.performed -= OnStartGame;
-    _controls.PlayerUI.Cancel.performed -= OnQuitGame;
     _controls.PlayerUI.Disable();
   }
   private void OnStartGame(InputAction.CallbackContext context)
@@ -31,7 +29,7 @@ public class MainMenuScript : MonoBehaviour
   {
     SceneManager.LoadScene(1);
   }
-  private void OnQuitGame(InputAction.CallbackContext context)
+  public void OnQuitGame()
   {
     Application.Quit();
   }
