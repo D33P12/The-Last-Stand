@@ -106,6 +106,10 @@ public class GameOverScript : MonoBehaviour
 
         _menuNavigation.ActivateGameOverMenu();
     }
+    public void MainMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
     private void UpdateTimerText()
     {
         if (timerText != null)

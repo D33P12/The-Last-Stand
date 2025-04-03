@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Deepanshu/Scripts01/MainMenu.unity
-    guid: f62e62980a298eb418beac7a6ab46907
+    path: Assets/Deepanshu/Scenes/MainMenu.unity
+    guid: f3e3624d6768f8745ade50225f46a7bf
   - enabled: 1
     path: Assets/Deepanshu/Scenes/TestGym.unity
     guid: 66717e6fd23ffd44a8098c56e610a4ee

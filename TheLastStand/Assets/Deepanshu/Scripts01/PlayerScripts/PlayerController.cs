@@ -129,6 +129,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
     private void Awake()
     {
+        Time.timeScale = 1;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         _controls = new Inputs();
