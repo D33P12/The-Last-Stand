@@ -1,13 +1,17 @@
 using UnityEngine;
 
 public class SoundManager : MonoBehaviour
-{ 
-    public enum AudioType { Bg }
+{
+    public enum AudioType
+    {
+        Bg, 
+        
+        
+    } 
     public static SoundManager Instance { get; private set; }
     public AudioClip[] audioList;
     private AudioSource _audioSource;
     public MusicSettings musicSettings;
-
     private void Awake()
     {
         if (Instance == null)
@@ -44,6 +48,16 @@ public class SoundManager : MonoBehaviour
         {
             _audioSource.clip = audioList[(int)sound];
             _audioSource.loop = true;
+            _audioSource.volume = volume;
+            _audioSource.Play();
+        }
+    }
+    public void PlayAudioOnce(AudioType sound, float volume)
+    {
+        if (_audioSource != null && audioList.Length > (int)sound && audioList[(int)sound] != null)
+        {
+            _audioSource.clip = audioList[(int)sound];
+            _audioSource.loop = false;
             _audioSource.volume = volume;
             _audioSource.Play();
         }
