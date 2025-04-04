@@ -210,11 +210,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8ab8fea659cc1f42a7894487a5b20d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHits: 12
+  maxHits: 40
   cooldownTime: 7
-  obstacleRenderer: {fileID: 5768686205714094502}
-  activeColor: {r: 0.21681976, g: 1, b: 0, a: 1}
-  disabledColor: {r: 1, g: 0, b: 0, a: 1}
+  obstacleRenderer: {fileID: 8364538047618813151}
+  activeColor: {r: 1, g: 1, b: 1, a: 1}
+  disabledColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &4852906960482760503
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -336,7 +336,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 849205425899724813, guid: 1faf0d3109fd2554eb67e1e5499a324a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.329495
+      value: 6.72
       objectReference: {fileID: 0}
     - target: {fileID: 849205425899724813, guid: 1faf0d3109fd2554eb67e1e5499a324a, type: 3}
       propertyPath: m_LocalPosition.y
@@ -344,7 +344,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 849205425899724813, guid: 1faf0d3109fd2554eb67e1e5499a324a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 20.89
+      value: 20.04
       objectReference: {fileID: 0}
     - target: {fileID: 849205425899724813, guid: 1faf0d3109fd2554eb67e1e5499a324a, type: 3}
       propertyPath: m_LocalRotation.w

@@ -116,7 +116,9 @@ public class GameOverScript : MonoBehaviour
     {
         if (timerText != null)
         {
-            timerText.text = "Time Left: " + Mathf.FloorToInt(_timer).ToString();
+            int minutes = Mathf.FloorToInt(_timer / 60);
+            int seconds = Mathf.FloorToInt(_timer % 60);
+            timerText.text = $"Time Left: <b>{minutes:D2}:{seconds:D2}</b>";
         }
     }
     public void OnQuitGame()

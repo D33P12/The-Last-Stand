@@ -5,8 +5,11 @@ public class SoundManager : MonoBehaviour
     public enum AudioType
     {
         Bg, 
-        
-        
+        Reloading,
+        Walking,
+        EnemyDamaged,
+        shoot,
+        ObstacleDamaged
     } 
     public static SoundManager Instance { get; private set; }
     public AudioClip[] audioList;

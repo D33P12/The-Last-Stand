@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Grenade : MonoBehaviour
 {
-    [SerializeField]
+     [SerializeField]
     private float explosionRadius = 5f;
     [SerializeField]
     private float explosionDamage = 50f;
@@ -10,9 +10,13 @@ public class Grenade : MonoBehaviour
     private float timerDuration = 5f;
     [SerializeField]
     private LayerMask groundLayer;
+    [SerializeField]
+    private ParticleSystem explosionParticles; 
+
     private float _timer;
     private bool _hasLanded = false;
     private Rigidbody _rb;
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
@@ -37,6 +41,11 @@ public class Grenade : MonoBehaviour
             _rb.useGravity = false;
             _rb.linearVelocity = Vector3.zero;
             _rb.angularVelocity = Vector3.zero;
+
+            if (explosionParticles != null)
+            {
+                explosionParticles.Play();
+            }
         }
     }
     public void Launch(Vector3 velocity)
@@ -54,6 +63,11 @@ public class Grenade : MonoBehaviour
                 damageable.TakeDamage((int)explosionDamage);
             }
         }
+        if (explosionParticles != null)
+        {
+            explosionParticles.Stop();
+        }
+
         Destroy(gameObject);
     }
     private void OnDrawGizmos()
