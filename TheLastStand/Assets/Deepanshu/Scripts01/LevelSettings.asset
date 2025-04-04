@@ -12,15 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b5ed7de1802e284782d4b9f70743c35, type: 3}
   m_Name: LevelSettings
   m_EditorClassIdentifier: 
-  defaultEnemyCount: 8
+  defaultEnemyCount: 4
   defaultEnemyBulletDamage: 10
-  defaultPlayerHealth: 100
   defaultPlayerBulletDamage: 20
   defaultHealthCollectableAmount: 20
   defaultAmmoRefillAmount: 30
   enemyCountIncreasePerLevel: 2
   enemyBulletDamageIncreasePerLevel: 1
-  playerHealthIncreasePerLevel: 10
   playerBulletDamageIncreasePerLevel: 2
   healthCollectableAmountIncreasePerLevel: 5
   ammoRefillAmountIncreasePerLevel: 5

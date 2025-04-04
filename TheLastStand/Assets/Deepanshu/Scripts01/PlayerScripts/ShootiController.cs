@@ -69,6 +69,7 @@ public class ShootiController : MonoBehaviour
     [SerializeField] private Image crosshairImage;
     public bool IsShooting => _isShooting;
     private PlayerController _playerController;
+
     private void Start()
     {
         _playerAnimator = GameObject.Find("Rifle Aiming Idle").GetComponent<Animator>();
@@ -91,13 +92,15 @@ public class ShootiController : MonoBehaviour
     }
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
+
     private void Update()
     {
         UpdateAmmoDisplay();
     }
-
     private void TryShoot()
     {
+        if (_isReloading) return; 
+
         if (_playerController.coverState == CoverState.InCoverColliding)
         {
             CoverShoot();
@@ -109,7 +112,7 @@ public class ShootiController : MonoBehaviour
     }
     private void CoverShoot()
     {
-        if (_playerController.coverState != CoverState.InCoverColliding) return;
+        if (_playerController.coverState != CoverState.InCoverColliding || _isReloading) return;
 
         Vector3 shootDir = coverCamera.transform.forward;
         Debug.DrawRay(shootPoint.position, shootDir * 100f, Color.green, 2f);
@@ -119,11 +122,11 @@ public class ShootiController : MonoBehaviour
     }
     private void Shoot()
     {
-        if (_playerController.coverState != CoverState.NotInCover) return;
+        if (_playerController.coverState != CoverState.NotInCover || _isReloading) return;
 
         Vector3 shootDir = playerCamera.transform.forward;
         Debug.DrawRay(shootPoint.position, shootDir * 100f, Color.red, 2f);
-        
+
         HandleShootingLogic(shootDir, shootPoint.position);
     }
     private void HandleShootingLogic(Vector3 shootDir, Vector3 shootPosition)
@@ -173,11 +176,15 @@ public class ShootiController : MonoBehaviour
         }
         return Instantiate(bulletPrefab);
     }
+
     private IEnumerator ReturnBulletToPool(GameObject bullet, float delay)
     {
         yield return new WaitForSeconds(delay);
-        bullet.SetActive(false);
-        _bulletPool.Enqueue(bullet);
+        if (bullet != null)
+        {
+            bullet.SetActive(false);
+            _bulletPool.Enqueue(bullet);
+        }
     }
     private void Reload()
     {
@@ -193,6 +200,7 @@ public class ShootiController : MonoBehaviour
         _currentAmmo += ammoToReload;
         _carryingAmmo -= ammoToReload;
         _isReloading = false;
+        _playerAnimator.SetBool("IsReloading", false);
     }
     public void SetCanShoot(bool canShoot)
     {

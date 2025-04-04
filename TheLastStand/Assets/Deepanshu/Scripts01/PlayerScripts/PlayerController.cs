@@ -108,10 +108,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     public CoverState CoverState { get; private set; }
 
     internal bool IsPaused = false;
+    private bool _isDying = false;
+
     void Start()
     {
         ExitCover();
-
         UpdateAimConstraints();
         CurrentHealth = maxHealth;
         UpdateHealthUI();
@@ -128,6 +129,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         _shootiController.playerCamera = playerCamera;
         _shootiController.coverCamera = coverCamera;
     }
+
     private void Awake()
     {
         Time.timeScale = 1;
@@ -150,11 +152,47 @@ public class PlayerController : MonoBehaviour, IDamageable
         _yaw = transform.eulerAngles.y;
         _pitch = 0f;
     }
+
     private void OnEnable() => _controls.Enable();
     private void OnDisable() => _controls.Disable();
+    
+    public void TakeDamage(int damage)
+    {
+        if (_isDying) return;
+
+        CurrentHealth -= damage;
+        _isHit = true;
+        animator.SetBool("IsHit", true);
+        UpdateHealthUI();
+        if (CurrentHealth <= 0)
+            StartCoroutine(Die());
+    }
+    private IEnumerator Die()
+    {
+        _isDying = true;
+
+        foreach (var constraint in aimConstraints)
+        {
+            constraint.weight = 0f;
+        }
+        foreach (var constraint in coverAimConstraints)
+        {
+            constraint.weight = 0f;
+        }
+
+        animator.SetTrigger("Die");
+
+        _controls.Disable();
+        _shootiController.enabled = false;
+
+        yield return new WaitForSeconds(0.5f); 
+
+        GameOverScript.Instance.GameOver();
+    }
+
     private void Update()
     {
-        if (!IsPaused)
+        if (!IsPaused && !_isDying)
         {
             HandleMovement();
             HandleLook();
@@ -185,9 +223,10 @@ public class PlayerController : MonoBehaviour, IDamageable
             UpdateAimConstraints();
         }
     }
+
     private void HandleMovement()
     {
-        if (isInCover || IsPaused) return;
+        if (isInCover || IsPaused || _isDying) return;
         float currentMoveSpeed = _isAds ? adsMoveSpeed : (_isCoverAds ? coverAdsMoveSpeed : moveSpeed);
         Vector3 inputDir = new Vector3(_movement.x, 0, _movement.y);
         inputDir = transform.TransformDirection(inputDir);
@@ -199,10 +238,12 @@ public class PlayerController : MonoBehaviour, IDamageable
         animator.SetFloat("MoveX", _moveX);
         animator.SetFloat("MoveY", _moveY);
     }
+
     public void SetAimSensitivity(float sensitivity)
     {
         gameSettings.aimSensitivity = sensitivity;
     }
+
     private void HandleLook()
     {
         float pitchClamp = isInCover ? coverPitchClamp : playerPitchClamp;
@@ -230,6 +271,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             animator.SetFloat("TurnDirection", _turnDirection);
         }
     }
+
     private void UpdateCamera()
     {
         if (playerCamera != null && !isInCover)
@@ -240,6 +282,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, targetFOV, Time.deltaTime * cameraDamping);
         }
     }
+
     private void UpdateCoverCamera()
     {
         if (coverCamera != null && playerTarget != null && isInCover)
@@ -253,6 +296,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             coverCamera.fieldOfView = Mathf.Lerp(coverCamera.fieldOfView, targetFOV, Time.deltaTime * cameraDamping);
         }
     }
+
     private void ToggleAds(bool isActive)
     {
         if (isInCover)
@@ -262,6 +306,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         _isAds = isActive;
     }
+
     private void ToggleCoverAds(bool isActive)
     {
         if (!isInCover)
@@ -271,6 +316,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         _isCoverAds = isActive;
     }
+
     private void HandleShoulderSwitch()
     {
         if (isInCover)
@@ -282,12 +328,14 @@ public class PlayerController : MonoBehaviour, IDamageable
             SwitchShoulder();
         }
     }
+
     private void SwitchShoulder()
     {
         _isLeftShoulder = !_isLeftShoulder;
         Vector3 targetPosition = _isLeftShoulder ? leftShoulderPos : rightShoulderPos;
         playerCamera.transform.localPosition = new Vector3(targetPosition.x, playerCamera.transform.localPosition.y, playerCamera.transform.localPosition.z);
     }
+
     private void CoverShoulderSwitch()
     {
         _isLeftShoulder = !_isLeftShoulder;
@@ -297,6 +345,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         Vector3 perpendicularDirection = Vector3.Cross(_coverDirection, Vector3.up);
         transform.rotation = Quaternion.LookRotation(perpendicularDirection);
     }
+
     private void TakeCover()
     {
         if (isInCover)
@@ -321,6 +370,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         animator.SetBool("IsTakingCover", false);
     }
+
     private void EnterCover(Vector3 coverPosition)
     {
         isInCover = true;
@@ -331,6 +381,8 @@ public class PlayerController : MonoBehaviour, IDamageable
         _coverDirection = (_rightCoverPoint.position - _leftCoverPoint.position).normalized;
         Vector3 perpendicularDirection = Vector3.Cross(_coverDirection, Vector3.up);
         transform.rotation = Quaternion.LookRotation(perpendicularDirection);
+        _isLeftShoulder = true;
+        coverCameraOffset = leftShoulderOffset;
 
         animator.SetBool("IsInCover", true);
         animator.SetFloat("CoverMovement", 0);
@@ -348,6 +400,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         if (coverCamera != null)
         {
             coverCamera.gameObject.SetActive(true);
+            UpdateCoverCamera();
         }
         if (playerCamera != null)
         {
@@ -360,6 +413,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             obstacle.SetActive(true);
         }
     }
+
     private void HandleCoverMovement()
     {
         float sideMove = _coverMovement.x;
@@ -373,6 +427,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         animator.SetFloat("CoverMovement", sideMove);
     }
+
     private void ExitCover()
     {
         isInCover = false;
@@ -406,6 +461,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         _currentCoverObject = null;
     }
+
     private void NotifyEnemiesOfCoverState()
     {
         EnemyBase[] enemies = Object.FindObjectsByType<EnemyBase>(FindObjectsSortMode.None);
@@ -414,28 +470,19 @@ public class PlayerController : MonoBehaviour, IDamageable
             enemy.SetPlayerCoverState(CoverState, lastCoverPosition);
         }
     }
-    public void TakeDamage(int damage)
-    {
-        CurrentHealth -= damage;
-        _isHit = true;
-        animator.SetBool("IsHit", true);
-        UpdateHealthUI();
-        if (CurrentHealth == 0)
-            Die();
-    }
+
+
+
     private void UpdateHealthUI()
     {
         if (healthText != null)
             healthText.text = $"Player Health: {CurrentHealth}";
     }
+
     public void Heal(int amount)
     {
         CurrentHealth = Mathf.Min(CurrentHealth + amount, maxHealth);
         UpdateHealthUI();
-    }
-    private void Die()
-    {
-        GameOverScript.Instance.GameOver();
     }
     private void UpdateAimConstraints()
     {
@@ -478,6 +525,7 @@ public class PlayerController : MonoBehaviour, IDamageable
                 break;
         }
     }
+
     private void UpdateObjectToFlipRotation()
     {
         if (isInCover && !Physics.CheckSphere(transform.position, 0.5f, LayerMask.GetMask("CoverCorner")))

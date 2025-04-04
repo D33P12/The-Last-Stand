@@ -53,6 +53,9 @@ public class EnemyBase : MonoBehaviour, IInteractable
     private bool _isMoving = false;
     private Vector3 _moveDirection = Vector3.zero;
     private bool _isThrowingGrenade = false;
+    [SerializeField]
+    private float _shootingCooldown = 2f;
+    private float _shootingCooldownTimer = 0f;
 
     public void SetPlayer(Transform playerTransform)
     {
@@ -108,6 +111,12 @@ public class EnemyBase : MonoBehaviour, IInteractable
             _grenadeTimer = 0f;
         }
         Animator.SetBool("isThrowingGrenade", _isThrowingGrenade);
+
+        // Update the shooting cooldown timer
+        if (_shootingCooldownTimer > 0)
+        {
+            _shootingCooldownTimer -= Time.deltaTime;
+        }
     }
     public void SetPlayerCoverState(CoverState state, Vector3 position)
     {
@@ -191,10 +200,13 @@ public class EnemyBase : MonoBehaviour, IInteractable
             {
                 bulletScript.SetSpeed(bulletSpeed);
             }
-       
+
             yield return new WaitForSeconds(fireRate / bulletsPerRound);
         }
         _isShooting = false;
+
+        // Start the cooldown timer
+        _shootingCooldownTimer = _shootingCooldown;
     }
     public void TakeDamage(int damage)
     {

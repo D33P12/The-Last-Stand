@@ -10,11 +10,9 @@ public class Grenade : MonoBehaviour
     private float timerDuration = 5f;
     [SerializeField]
     private LayerMask groundLayer;
-
     private float _timer;
     private bool _hasLanded = false;
     private Rigidbody _rb;
-
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
